@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Usuario</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="admin-body">
+  <div class="admin-container" style="max-width: 500px;">
+    <h1>Editar Usuario</h1>
+    <form action="/admin/users/update/<%= usuario.id %>" method="POST" class="panel" style="padding: 20px;">
+      <div style="margin-bottom: 15px;">
+        <label>Nombre:</label>
+        <input type="text" name="nombre" value="<%= usuario.nombre %>" required style="width: 100%; padding: 8px;">
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label>Email:</label>
+        <input type="email" name="email" value="<%= usuario.email %>" required style="width: 100%; padding: 8px;">
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label>Rol:</label>
+        <select name="rol" style="width: 100%; padding: 8px;">
+          <option value="user" <%= usuario.rol === 'user' ? 'selected' : '' %>>user</option>
+          <option value="admin" <%= usuario.rol === 'admin' ? 'selected' : '' %>>admin</option>
+        </select>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <a href="/admin" class="btn-sm btn-outline">Cancelar</a>
+        <button type="submit" class="btn-sm btn-primary">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

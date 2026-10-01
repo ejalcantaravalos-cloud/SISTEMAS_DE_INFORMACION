@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>Gestión de Usuarios</h1>
+      <span class="admin-badge">Admin: <%= user.email %></span>
+    </div>
+
+    <div class="toolbar">
+      <span class="count"><%= usuarios.length %> usuario<%= usuarios.length === 1 ? '' : 's' %> registrado<%= usuarios.length === 1 ? '' : 's' %></span>
+      <a href="/admin/users/new" class="btn-sm btn-primary">+ Nuevo usuario</a>
+    </div>
+
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Creado en</th>
+            <th style="text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% usuarios.forEach(u => { %>
+            <tr>
+              <td>#<%= u.id %></td>
+              <td><%= u.nombre %></td>
+              <td><%= u.email %></td>
+              <td>
+                <span class="tag <%= u.rol === 'admin' ? 'tag-admin' : 'tag-cliente' %>">
+                  <%= u.rol %>
+                </span>
+              </td>
+              <td><%= u.creado_en %></td>
+              <td>
+                <div class="actions">
+                  <a href="/admin/users/edit/<%= u.id %>" class="btn-sm btn-outline">Editar</a>
+                  <a href="/admin/users/delete/<%= u.id %>" class="btn-sm btn-danger" onclick="return confirm('¿Eliminar a <%= u.nombre %>?');">Eliminar</a>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    
+    <div>
+    <a href="/logout" class="btn-sm btn-danger" style="text-decoration: none;">Cerrar sesión</a>
+  </div>
+</div>
+
+    <a href="/" class="back-link">← Volver al inicio</a>
+  </div>
+</body>
+</html>
