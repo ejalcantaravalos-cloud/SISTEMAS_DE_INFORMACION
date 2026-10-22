@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+
+  <div class="card">
+
+    <h1>¡Bienvenido!</h1>
+
+    <p class="subtitle">
+      Qué bueno verte por aquí
+    </p>
+
+    <p class="user-info">
+      Hola,
+      <strong><%= user.nombre %></strong>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menú del Restaurante</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; color: #334155; margin: 0; padding: 0; }
+    .public-container { max-width: 1000px; margin: 40px auto; padding: 20px; }
+    .public-header { text-align: center; margin-bottom: 40px; }
+    .public-header h1 { font-size: 2.5rem; color: #1e293b; margin-bottom: 10px; }
+    .public-header p { color: #64748b; font-size: 1.1rem; }
+    
+    .categoria-section { margin-bottom: 40px; }
+    .categoria-title { font-size: 1.5rem; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 20px; }
+    
+    .productos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .producto-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+    .producto-card h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: #1e293b; }
+    .precio { font-size: 1.25rem; font-weight: bold; color: #16a34a; margin-bottom: 15px; }
+    .badge-especial { position: absolute; top: 15px; right: 15px; background: #fef08a; color: #854d0e; font-size: 0.75rem; padding: 4px 8px; border-radius: 9999px; font-weight: bold; }
+    
+    .btn-ordenar { background: #2563eb; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 500; width: 100%; transition: background 0.2s; }
+    .btn-ordenar:hover { background: #1d4ed8; }
+    
+    .volver-home { display: inline-block; margin-bottom: 20px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .volver-home:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="public-container">
+    <a href="/" class="volver-home">← Volver al inicio</a>
+    
+    <div class="public-header">
+      <h1>🍽️ Nuestro Menú y Platillos</h1>
+      <p>Explora nuestros deliciosos platillos, menús especiales de temporada y del día.</p>
+    </div>
+
+    <% if (categorias.length === 0) { %>
+      <p style="text-align: center; color: #64748b;">No hay menús disponibles en este momento.</p>
+    <% } else { %>
+      <% categorias.forEach(cat => { %>
+        <% 
+           // Filtrar los productos que pertenecen a esta categoría
+           const prodsDeCategoria = productos.filter(p => p.categoria_id === cat.id);
+        %>
+        
+        <% if (prodsDeCategoria.length > 0) { %>
+          <div class="categoria-section">
+            <h2 class="categoria-title">📑 <%= cat.nombre %></h2>
+            <p style="color: #64748b; margin-top: -15px; margin-bottom: 20px;"><%= cat.descripcion %></p>
+            
+            <div class="productos-grid">
+              <% prodsDeCategoria.forEach(prod => { %>
+                <div class="producto-card">
+                  <% if (prod.especial) { %>
+                    <span class="badge-especial">⭐ Especial</span>
+                  <% } %>
+                  <div>
+                    <h3><%= prod.nombre %></h3>
+                    <div class="precio">$<%= Number(prod.precio).toFixed(2) %></div>
+                  </div>
+                  <button class="btn-ordenar" onclick="alert('¡Pronto se podra ordenar!, estamos en constante mantenimiento')">Ver detalles / Personalizar</button>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        <% } %>
+      <% }) %>
+    <% } %>
+
+  </div>
+</body>
+</html>
+      <span class="user-email">
+        <%= user.email %>
+      </span>
+      tu rol es:
+      <strong><%= user.rol %></strong>
+      Estamos en mantenimiento, gracias por tu espera. Pronto podrás acceder a todas las funciones del sistema.
+    </p>
+
+    <div class="hero-actions">
+
+      <a href="/logout">
+        <button class="btn-secondary">
+          Cerrar sesión
+        </button>
+      </a>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

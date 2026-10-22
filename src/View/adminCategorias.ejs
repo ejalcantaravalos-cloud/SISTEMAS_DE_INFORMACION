@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Menús</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="admin-body">
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>📑 Gestión de Menús y Categorías</h1>
+      <span class="admin-badge">Admin: <%= user.email %></span>
+    </div>
+
+    <!-- Barra de herramientas -->
+    <div class="toolbar">
+      <span class="count"><%= categorias.length %> menú(s) registrado(s)</span>
+      <a href="/admin" class="btn-sm btn-outline" style="text-decoration: none;">← Volver al Panel Admin</a>
+    </div>
+
+    <!-- Tabla para listar menús -->
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre del Menú</th>
+            <th>Descripción</th>
+            <th style="text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (categorias.length === 0) { %>
+            <tr>
+              <td colspan="4" style="text-align: center; color: #888; padding: 20px;">No hay menús creados todavía.</td>
+            </tr>
+          <% } else { %>
+            <% categorias.forEach(cat => { %>
+              <tr>
+                <td>#<%= cat.id %></td>
+                <td><strong><%= cat.nombre %></strong></td>
+                <td><%= cat.descripcion || 'Sin descripción' %></td>
+                <td style="text-align:right;">
+                  <a href="/admin/menu/categorias/eliminar/<%= cat.id %>" class="btn-sm btn-danger" onclick="return confirm('¿Estás segura de eliminar este menú?');" style="text-decoration: none;">Eliminar</a>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Formulario para crear un nuevo menú -->
+    <div class="panel" style="margin-top: 20px;">
+      <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: #333;">Crear Nuevo Menú (Ej. San Valentín, Fijo)</h3>
+      <form action="/admin/menu/categorias/crear" method="POST" style="display: flex; gap: 15px; flex-wrap: wrap;">
+        
+        <div style="flex: 1; min-width: 200px;">
+          <label style="display:block; font-size: 0.85rem; margin-bottom: 5px;">Nombre del Menú:</label>
+          <input type="text" name="nombre" placeholder="Ej. Menú Especial" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="flex: 2; min-width: 250px;">
+          <label style="display:block; font-size: 0.85rem; margin-bottom: 5px;">Descripción:</label>
+          <input type="text" name="descripcion" placeholder="Ej. Disponible solo en febrero" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="display: flex; align-items: flex-end;">
+          <button type="submit" class="btn-sm btn-primary" style="padding: 9px 20px; cursor: pointer;">Guardar Menú</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</body>
+</html>

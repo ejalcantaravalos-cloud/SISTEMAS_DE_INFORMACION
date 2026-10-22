@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs')
 const conexion = require('../Database/db')
 const { promisify } = require('util')
 
-// 1. Registrar usuario
+//  defecto se crea como 'Aspirante'
 exports.register = async (req, res) => {
   try {
     const { nombre, email, password } = req.body
@@ -16,15 +16,13 @@ exports.register = async (req, res) => {
 
     conexion.query(
       'INSERT INTO usuarios SET ?',
-      { nombre: nombre, email: email, password: passwordHash },
+      { nombre: nombre, email: email, password: passwordHash, rol: 'Aspirante' },
       (error, results) => {
         if (error) {
           console.log("Error al registrar:", error)
-
           if (error.code === 'ER_DUP_ENTRY') {
             return res.render('register', { error: 'El correo ya está registrado' })
           }
-
           return res.render('register', { error: 'Error en la base de datos: ' + error.message })
         }
         res.redirect('/login')
@@ -36,7 +34,7 @@ exports.register = async (req, res) => {
   }
 }
 
-// 2. Iniciar sesión (Login con Cookie JWT)
+// Iniciar sesión redirección por rol)
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body
@@ -62,21 +60,28 @@ exports.login = async (req, res) => {
         expiresIn: process.env.JWT_EXPIRES_IN
       })
 
-      // Opciones de la Cookie
       const cookieOptions = {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         httpOnly: true
       }
 
-      // Guardar Cookie
       res.cookie('jwt', token, cookieOptions)
 
-      // Redirección según el rol
+      // Redirección estricta según el rol actual en la Base de Datos
       if (user.rol === 'admin') {
         return res.redirect('/admin');
+      } else if (user.rol === 'Cocinero') {
+        return res.redirect('/Cocinero');
+      } else if (user.rol === 'Limpieza') {
+        return res.redirect('/Limpieza');
+      } else if (user.rol === 'Mesero') {
+        return res.redirect('/Mesero');
+      } else if (user.rol === 'Cajero') {
+        return res.redirect('/Cajero');
+      } else {
+        // Si es 'Aspirante' o cualquier otro, va directo a la vista de cliente (VistaAspirante.ejs)
+        return res.redirect('/Aspirante');
       }
-
-      return res.redirect('/cliente');
     })
   } catch (error) {
     console.log(error)
@@ -84,10 +89,9 @@ exports.login = async (req, res) => {
   }
 }
 
-// 3. Middleware: usuario autenticado (con logs de depuración)
+//  Middleware básico de autenticación
 exports.isAuthenticated = async (req, res, next) => {
   if (!req.cookies || !req.cookies.jwt) {
-    console.log("--> Expulsado: No se encontró la cookie 'jwt' en la petición.");
     return res.redirect('/login');
   }
 
@@ -96,76 +100,55 @@ exports.isAuthenticated = async (req, res, next) => {
 
     conexion.query('SELECT * FROM usuarios WHERE id = ?', [decodificada.id], (error, results) => {
       if (error || !results || results.length === 0) {
-        console.log("--> Expulsado: Usuario del token no existe en la BD.");
         return res.redirect('/login');
       }
       req.user = results[0];
       return next();
     });
   } catch (error) {
-    console.log("--> Expulsado por error en JWT:", error.message);
     return res.redirect('/login');
   }
 }
 
-// 4. Middleware: SOLO admin (con logs de depuración)
-exports.isAdmin = async (req, res, next) => {
-  if (!req.cookies || !req.cookies.jwt) {
-    console.log("--> Expulsado (isAdmin): No hay cookie 'jwt'.");
-    return res.redirect('/login');
-  }
+// Middleware de seguridad por rol (Evita que un aspirante o mesero entre a vistas prohibidas)
+exports.hasRole = (rolePermitido) => {
+  return async (req, res, next) => {
+    if (!req.cookies || !req.cookies.jwt) {
+      return res.redirect('/login');
+    }
 
-  try {
-    const decodificada = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_SECRET);
+    try {
+      const decodificada = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_SECRET);
 
-    conexion.query('SELECT * FROM usuarios WHERE id = ?', [decodificada.id], (error, results) => {
-      if (error || !results || results.length === 0) {
-        console.log("--> Expulsado (isAdmin): No se encontró el usuario.");
-        return res.redirect('/login');
-      }
+      conexion.query('SELECT * FROM usuarios WHERE id = ?', [decodificada.id], (error, results) => {
+        if (error || !results || results.length === 0) {
+          return res.redirect('/login');
+        }
 
-      const user = results[0];
+        const user = results[0];
 
-      if (user.rol !== 'admin') {
-        console.log(`--> Expulsado: El usuario ${user.email} tiene rol '${user.rol}', no 'admin'.`);
-        return res.redirect('/');
-      }
+        // Si el usuario no tiene el rol exacto permitido para esta ruta, lo rebotamos a su vista correspondiente
+        if (user.rol !== rolePermitido) {
+          console.log(`--> Acceso bloqueado: Usuario ${user.email} con rol '${user.rol}' intentó entrar a una zona de '${rolePermitido}'.`);
+          
+          if (user.rol === 'admin') return res.redirect('/admin');
+          if (user.rol === 'Cocinero') return res.redirect('/Cocinero');
+          if (user.rol === 'Limpieza') return res.redirect('/Limpieza');
+          if (user.rol === 'Mesero') return res.redirect('/Mesero');
+          return res.redirect('/cliente'); // Por defecto para Aspirantes
+        }
 
-      req.user = user;
-      return next();
-    });
-  } catch (error) {
-    console.log("--> Expulsado (isAdmin) por error en JWT:", error.message);
-    return res.redirect('/login');
-  }
+        req.user = user;
+        return next();
+      });
+    } catch (error) {
+      return res.redirect('/login');
+    }
+  };
 }
 
-// 5. Cerrar sesión (Eliminar Cookie)
+// 5. Cerrar sesión
 exports.logout = (req, res) => {
   res.clearCookie('jwt')
   return res.redirect('/')
 }
-
-// 6. Middleware suave (Detecta si hay sesión sin bloquear)
-exports.checkUser = async (req, res, next) => {
-  if (!req.cookies || !req.cookies.jwt) {
-    req.user = null;
-    return next();
-  }
-
-  try {
-    const decodificada = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_SECRET);
-    
-    conexion.query('SELECT * FROM usuarios WHERE id = ?', [decodificada.id], (error, results) => {
-      if (error || !results || results.length === 0) {
-        req.user = null;
-      } else {
-        req.user = results[0];
-      }
-      return next();
-    });
-  } catch (error) {
-    req.user = null;
-    return next();
-  }
-};
