@@ -4,10 +4,11 @@ const dotenv = require('dotenv');
 dotenv.config({ path: './src/env/.env' });
 const cookieParser = require('cookie-parser');
 
-// 1. Importar solo los routers que SÍ existen físicamente en tu carpeta Routes/
 const router = require('./Routes/router');
 const adminRoutes = require('./Routes/AdminRouters');
 const menuRoutes = require('./Routes/MenuRouters'); 
+const ordenRoutes = require('./Routes/OrdenRouter');
+const inflableRoutes = require('./Routes/inflableRouters'); 
 
 const app = express();
 
@@ -24,13 +25,14 @@ app.use(express.json());
 
 app.use(cookieParser());
 
-
 app.use('/admin', adminRoutes);          
 app.use('/admin/menu', menuRoutes);      
+app.use('/ordenes', ordenRoutes); 
+app.use('/admin', inflableRoutes);
 app.use('/', router);                    
 
-// 4. Iniciar servidor
-const PORT = 3000;
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor activo en puerto ${PORT}`);
 });

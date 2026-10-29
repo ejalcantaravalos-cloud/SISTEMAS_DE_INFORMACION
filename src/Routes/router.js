@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../Controllers/AuthController');
 const menuController = require('../Controllers/MenuController');
+const ordenController = require('../Controllers/OrdenController');
 
 
 //  RUTA PÚBLICA 
@@ -25,7 +26,7 @@ router.get('/Cocinero', authController.hasRole('Cocinero'), (req, res) => {
 });
 
 router.get('/Cajero', authController.hasRole('Cajero'), (req, res) => {
-  res.render('VistaCajero', { user: req.user });
+  ordenController.mostrarCaja(req, res);
 });
 
 router.get('/Limpieza', authController.hasRole('Limpieza'), (req, res) => {

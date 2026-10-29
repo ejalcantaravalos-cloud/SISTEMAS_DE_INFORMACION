@@ -15,6 +15,7 @@ router.get('/categorias', menuController.listarCategorias);
 router.post('/categorias/crear', menuController.crearCategoria);
 router.get('/categorias/eliminar/:id', menuController.eliminarCategoria);
 
+
 //  Platillos / Productos
 router.get('/productos', productController.listarProductos);
 router.post('/productos/crear', productController.crearProducto);

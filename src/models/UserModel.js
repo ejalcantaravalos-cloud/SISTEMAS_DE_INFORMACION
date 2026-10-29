@@ -1,7 +1,7 @@
 const conexion = require('../Database/db');
 
 const UserModel = {
-  // Obtener todos los usuarios
+
   getAll: (callback) => {
     const query = 'SELECT id, nombre, email, rol, creado_en FROM usuarios';
     conexion.query(query, callback);

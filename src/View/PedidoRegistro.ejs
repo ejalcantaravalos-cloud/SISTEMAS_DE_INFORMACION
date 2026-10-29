@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Pedidos - Comandas</title>
+ 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #334155;
+    }
+    .card-pedidos {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container py-4">
+ 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="fw-bold mb-0">Comandas y Pedidos Activos</h2>
+        <small class="text-muted">Listado general de órdenes registradas en caja</small>
+      </div>
+      <div>
+        <a href="/admin" class="btn btn-outline-secondary btn-sm">← Volver al Panel</a>
+      </div>
+    </div>
+
+    
+    <div class="card card-pedidos bg-white">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">ID</th>
+                <th>Tipo / Ubicación</th>
+                <th>Cliente</th>
+                <th>Notas / Especificaciones</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Fecha / Hora</th>
+                <th class="text-end pe-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (pedidos && pedidos.length > 0) { %>
+                <% pedidos.forEach(p => { %>
+                  <tr>
+                    <td class="ps-3 fw-bold text-primary">#<%= p.id %></td>
+                    <td>
+                    
+                      <span class="badge bg-<%= p.tipo_orden === 'Mesa' ? 'primary' : 'info text-dark' %>">
+                        <%= p.tipo_orden %>
+                      </span>
+                      <% if (p.tipo_orden === 'Mesa') { %>
+                        <div class="small text-muted mt-1">Mesa: #<%= p.numero_mesa %></div>
+                      <% } %>
+                    </td>
+                    <td><%= p.nombre_cliente || 'Mostrador / General' %></td>
+                    <td>
+                      <span class="text-muted small"><%= p.nota || 'Sin notas especiales' %></span>
+                    </td>
+                    <td class="fw-bold text-success">$<%= Number(p.total).toFixed(2) %></td>
+                    <td>
+                      <span class="badge bg-warning text-dark"><%= p.estado %></span>
+                    </td>
+                    <td>
+                      <small class="text-muted"><%= p.fecha_pedido ? new Date(p.fecha_pedido).toLocaleString() : 'N/A' %></small>
+                    </td>
+                    <td class="text-end pe-3">
+                      
+                      <button type="button" class="btn btn-sm btn-outline-dark" onclick="alert('Imprimiendo comanda #<%= p.id %>...');">
+                        Imprimir
+                      </button>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-4">
+                    No hay pedidos registrados en este momento.
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

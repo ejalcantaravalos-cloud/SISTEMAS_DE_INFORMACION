@@ -21,7 +21,7 @@ exports.eliminarCategoria = (req, res) => {
     });
 };
 
-//  Consulta: Vista pública del menú para clientes
+
 exports.verMenuPublico = (req, res) => {
     const queryCategorias = 'SELECT * FROM categoria';
     const queryProductos = 'SELECT * FROM producto WHERE activo = TRUE';

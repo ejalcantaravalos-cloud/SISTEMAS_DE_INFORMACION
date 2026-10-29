@@ -1,0 +1,45 @@
+ body {
+      background-color: #f4f6f8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #333;
+    }
+    .panel-caja {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    .card-platillo {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      transition: border-color 0.15s ease-in-out;
+      background: #fff;
+    }
+    .card-platillo:hover {
+      border-color: #dbaee9;
+    }
+    .img-placeholder {
+      height: 110px;
+      background-color: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6c757d;
+      font-size: 0.85rem;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      overflow: hidden;
+    }
+    .img-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .orden-resumen {
+      position: sticky;
+      top: 20px;
+    }
+    .item-carrito {
+      border-bottom: 1px dashed #dee2e6;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }

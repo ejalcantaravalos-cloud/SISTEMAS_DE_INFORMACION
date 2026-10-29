@@ -87,9 +87,21 @@ CREATE TABLE IF NOT EXISTS pedido (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT,                     -- Cajero que registró el pedido
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id),
+    tipo_orden ENUM('Mesa', 'Para llevar') NOT NULL DEFAULT 'Mesa',
+    numero_mesa INT NULL,
     nombre_cliente VARCHAR(255) NULL,   -- Referencia para identificar la mesa o paquete
     total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     nota TEXT,
     estado ENUM('Recibido', 'En preparación', 'Listo para recoger', 'Entregado', 'Cancelado') NOT NULL DEFAULT 'Recibido',
     fecha_pedido DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS detalle_pedido (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    producto_id INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES producto(id)
 );
