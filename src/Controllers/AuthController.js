@@ -77,7 +77,7 @@ exports.login = async (req, res) => {
       } else if (user.rol === 'Mesero') {
         return res.redirect('/Mesero');
       } else if (user.rol === 'Cajero') {
-        return res.redirect('/Cajero');
+        return res.redirect('/ordenes/caja');
       } else {
         // Si es 'Aspirante' o cualquier otro, va directo a la vista de cliente (VistaAspirante.ejs)
         return res.redirect('/Aspirante');
@@ -111,41 +111,65 @@ exports.isAuthenticated = async (req, res, next) => {
 }
 
 // Middleware de seguridad por rol (Evita que un aspirante o mesero entre a vistas prohibidas)
-exports.hasRole = (rolePermitido) => {
-  return async (req, res, next) => {
-    if (!req.cookies || !req.cookies.jwt) {
-      return res.redirect('/login');
-    }
 
-    try {
-      const decodificada = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_SECRET);
+exports.hasRole = (rolesPermitidos) => {
+    return async (req, res, next) => {
 
-      conexion.query('SELECT * FROM usuarios WHERE id = ?', [decodificada.id], (error, results) => {
-        if (error || !results || results.length === 0) {
-          return res.redirect('/login');
+        if (!req.cookies || !req.cookies.jwt) {
+            return res.redirect('/login');
         }
 
-        const user = results[0];
+        try {
+            const decodificada = await promisify(jwt.verify)(
+                req.cookies.jwt,
+                process.env.JWT_SECRET
+            );
 
-        // Si el usuario no tiene el rol exacto permitido para esta ruta, lo rebotamos a su vista correspondiente
-        if (user.rol !== rolePermitido) {
-          console.log(`--> Acceso bloqueado: Usuario ${user.email} con rol '${user.rol}' intentó entrar a una zona de '${rolePermitido}'.`);
-          
-          if (user.rol === 'admin') return res.redirect('/admin');
-          if (user.rol === 'Cocinero') return res.redirect('/Cocinero');
-          if (user.rol === 'Limpieza') return res.redirect('/Limpieza');
-          if (user.rol === 'Mesero') return res.redirect('/Mesero');
-          return res.redirect('/cliente'); // Por defecto para Aspirantes
+            conexion.query(
+                'SELECT * FROM usuarios WHERE id = ?',
+                [decodificada.id],
+                (error, results) => {
+
+                    if (error || !results || results.length === 0) {
+                        return res.redirect('/login');
+                    }
+
+                    const user = results[0];
+
+                    // Permite pasar un rol o varios roles
+                    const roles = Array.isArray(rolesPermitidos)
+                        ? rolesPermitidos
+                        : [rolesPermitidos];
+
+                    console.log('=== VERIFICACIÓN DE ACCESO ===');
+                    console.log('Usuario:', user.email);
+                    console.log('Rol actual:', user.rol);
+                    console.log('Roles permitidos:', roles);
+
+                    // Verificar permiso
+                    if (!roles.includes(user.rol)) {
+
+                        console.log(
+                            'Acceso denegado por rol insuficiente.'
+                        );
+
+                        return res.status(403).send(
+                            'Acceso denegado: tu usuario no tiene permisos para esta sección.'
+                        );
+                    }
+
+                    req.user = user;
+                    return next();
+                }
+            );
+
+        } catch (error) {
+            console.error('Error de autenticación:', error);
+            return res.redirect('/login');
         }
+    };
+};
 
-        req.user = user;
-        return next();
-      });
-    } catch (error) {
-      return res.redirect('/login');
-    }
-  };
-}
 
 // 5. Cerrar sesión
 exports.logout = (req, res) => {

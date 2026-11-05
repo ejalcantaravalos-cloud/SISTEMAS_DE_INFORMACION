@@ -10,5 +10,13 @@ router.get('/pedidos', authController.hasRole('Cajero'), ordenController.listarP
 // Endpoint para guardar la comanda realizada
 router.post('/api/ordenes/crear', authController.hasRole('Cajero'), ordenController.crearOrden);
 
+router.get('/cobro/:id',
+    authController.hasRole('Cajero'),
+    ordenController.mostrarCobro
+);
 
+router.post('/cobro/:id/estado-pago',
+    authController.hasRole('Cajero'),
+    ordenController.actualizarPago
+);
 module.exports = router;

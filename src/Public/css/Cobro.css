@@ -1,0 +1,29 @@
+    @media print {
+
+        /* Ocultar botones y enlaces */
+        .no-imprimir {
+            display: none !important;
+        }
+
+        /* Quitar el fondo de la página */
+        body {
+            background: white !important;
+        }
+
+        /* Quitar bordes y sombras */
+        .card {
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        /* Aprovechar el espacio al imprimir */
+        .container {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+
+        /* Ocultar encabezado de cobro */
+        .card-header {
+            display: none !important;
+        }
+    }

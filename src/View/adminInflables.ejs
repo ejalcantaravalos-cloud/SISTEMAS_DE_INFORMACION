@@ -1,118 +1,369 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo de Brincolines e Inflables</title>
- 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Catálogo de Brincolines e Inflables</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/adminInflables.css" rel="stylesheet">
 </head>
+
 <body>
 
-  <div class="container py-4">
-   
+<div class="container py-4">
+
+    <!-- ENCABEZADO -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fw-bold mb-0"> Catálogo de Brincolines e Inflables</h2>
-        <small class="text-muted">Administración y control de equipos de renta</small>
-      </div>
-      <div>
-        <a href="/admin" class="btn btn-outline-secondary btn-sm">← Volver al Panel</a>
-      </div>
+
+        <div>
+            <h2 class="fw-bold mb-0">
+                Catálogo de Brincolines e Inflables
+            </h2>
+            <small class="text-muted">
+                Administración y control de equipos de renta
+            </small>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a href="/panel-imagenes"
+               class="btn btn-primary btn-sm">
+                Administrar Fotografías
+            </a>
+
+            <a href="/admin"
+               class="btn btn-outline-secondary btn-sm">
+                ← Volver al Panel
+            </a>
+
+        </div>
+
     </div>
+
 
     <div class="row g-4">
 
-      <div class="col-lg-4">
-        <div class="card card-panel bg-white p-3">
-          <h5 class="fw-bold mb-3">Registrar Nuevo Inflable</h5>
-          <form action="/admin/inflables/crear" method="POST">
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Nombre del Inflable:</label>
-              <input type="text" name="nombre" class="form-control form-control-sm" placeholder="Ej. Castillo Gigante" required>
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Medidas del Espacio:</label>
-              <input type="text" name="medidas_espacio" class="form-control form-control-sm" placeholder="Ej. 5x5 metros" required>
-            </div>
-            
-            
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Estado de Disponibilidad:</label>
-              <select name="estado_disponibilidad" class="form-select form-select-sm">
-                <option value="disponible">Disponible</option>
-                <option value="rentado">Rentado</option>
-                <option value="requiere limpieza">Requiere Limpieza</option>
-                <option value="mantenimiento">Mantenimiento</option>
-              </select>
-            </div>
-            
-            <button type="submit" class="btn btn-primary w-100 btn-sm fw-medium"> Guardar Inflable</button>
-          </form>
-        </div>
-      </div>
+        <!-- COLUMNA IZQUIERDA -->
+        <div class="col-lg-4">
 
-      <!-- Columna Derecha: Tabla de Listado -->
-      <div class="col-lg-8">
-        <div class="card card-panel bg-white">
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th class="ps-3">Foto</th>
-                    <th>Nombre</th>
-                    <th>Medidas</th>
-                    <th>Estado</th>
-                    <th class="text-end pe-3">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% if (inflables && inflables.length > 0) { %>
-                    <% inflables.forEach(inf => { %>
-                      <tr>
-                        <td class="ps-3">
-                          <% if (inf.fotografia_url) { %>
-                            <img src="<%= inf.fotografia_url %>" alt="<%= inf.nombre %>" class="img-thumb">
-                          <% } else { %>
-                            <span class="text-muted small">Sin foto</span>
-                          <% } %>
-                        </td>
-                        <td class="fw-bold"><%= inf.nombre %></td>
-                        <td><%= inf.medidas_espacio %></td>
-                        <td>
-                          <% 
-                            let badgeColor = 'success';
-                            if (inf.estado_disponibilidad === 'rentado') badgeColor = 'danger';
-                            else if (inf.estado_disponibilidad === 'requiere limpieza') badgeColor = 'warning text-dark';
-                            else if (inf.estado_disponibilidad === 'mantenimiento') badgeColor = 'secondary';
-                          %>
-                          <span class="badge bg-<%= badgeColor %>"><%= inf.estado_disponibilidad %></span>
-                        </td>
-                        <td class="text-end pe-3">
-                          <a href="/admin/inflables/eliminar/<%= inf.id_inflable %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de eliminar este inflable?');">
-                            🗑️ Eliminar
-                          </a>
-                        </td>
-                      </tr>
-                    <% }) %>
-                  <% } else { %>
-                    <tr>
-                      <td colspan="5" class="text-center text-muted py-4">
-                        No hay brincolines o inflables registrados en el catálogo.
-                      </td>
-                    </tr>
-                  <% } %>
-                </tbody>
-              </table>
+            <!-- FORMULARIO PARA REGISTRAR -->
+            <div class="card card-panel bg-white p-3">
+
+                <h5 class="fw-bold mb-3">
+                    Registrar Nuevo Inflable
+                </h5>
+
+                <form action="/admin/inflables/crear"
+                      method="POST"
+                      enctype="multipart/form-data">
+
+                    <!-- Nombre -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">
+                            Nombre del Inflable:
+                        </label>
+
+                        <input type="text"
+                               name="nombre"
+                               class="form-control form-control-sm"
+                               placeholder="Ej. Castillo Gigante"
+                               required>
+                    </div>
+
+                    <!-- Medidas -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">
+                            Medidas del Espacio:
+                        </label>
+
+                        <input type="text"
+                               name="medidas_espacio"
+                               class="form-control form-control-sm"
+                               placeholder="Ej. 5x5 metros"
+                               required>
+                    </div>
+
+                    <!-- Disponibilidad -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">
+                            Estado de Disponibilidad:
+                        </label>
+
+                        <select name="estado_disponibilidad"
+                                class="form-select form-select-sm">
+
+                            <option value="disponible">
+                                Disponible
+                            </option>
+
+                            <option value="rentado">
+                                Rentado
+                            </option>
+
+                            <option value="requiere limpieza">
+                                Requiere Limpieza
+                            </option>
+
+                            <option value="mantenimiento">
+                                Mantenimiento
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <!-- Fotografía -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">
+                            Fotografía del Inflable:
+                        </label>
+
+                        <input type="file"
+                               name="imagen"
+                               class="form-control form-control-sm"
+                               accept="image/jpeg,image/png,image/webp">
+
+                        <small class="text-muted">
+                            JPG, PNG o WebP. Máximo 5 MB.
+                        </small>
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-primary w-100 btn-sm fw-medium">
+                        Guardar Inflable
+                    </button>
+
+                </form>
             </div>
-          </div>
+
+
+            <!-- FORMULARIO PARA EDITAR -->
+            <div class="card card-panel bg-white p-3 mt-3 d-none"
+                 id="panelEditarInflable">
+
+                <h5 class="fw-bold mb-3">
+                    Editar Inflable
+                </h5>
+
+                <form id="formEditarInflable" method="POST">
+
+                    <!-- Nombre -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">
+                            Nombre del Inflable:
+                        </label>
+
+                        <input type="text"
+                               name="nombre"
+                               class="form-control form-control-sm"
+                               required>
+                    </div>
+
+                    <!-- Medidas -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">
+                            Medidas del Espacio:
+                        </label>
+
+                        <input type="text"
+                               name="medidas_espacio"
+                               class="form-control form-control-sm"
+                               required>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">
+                            Estado de Disponibilidad:
+                        </label>
+
+                        <select name="estado_disponibilidad"
+                                class="form-select form-select-sm">
+
+                            <option value="disponible">
+                                Disponible
+                            </option>
+
+                            <option value="rentado">
+                                Rentado
+                            </option>
+
+                            <option value="requiere limpieza">
+                                Requiere Limpieza
+                            </option>
+
+                            <option value="mantenimiento">
+                                Mantenimiento
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="d-flex gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary btn-sm flex-fill">
+                            Guardar Cambios
+                        </button>
+
+                        <button type="button"
+                                id="btnCancelarEdicion"
+                                class="btn btn-outline-secondary btn-sm">
+                            Cancelar
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+
         </div>
-      </div>
+
+
+        <!-- COLUMNA DERECHA: TABLA -->
+        <div class="col-lg-8">
+
+            <div class="card card-panel bg-white">
+
+                <div class="card-body p-0">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle mb-0">
+
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Foto</th>
+                                    <th>Nombre</th>
+                                    <th>Medidas</th>
+                                    <th>Estado</th>
+                                    <th class="text-end pe-3">
+                                        Acciones
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                            <% if (inflables && inflables.length > 0) { %>
+
+                                <% inflables.forEach(inf => { %>
+
+                                    <tr>
+
+                                        <!-- FOTO -->
+                                        <td class="ps-3">
+
+                                            <img
+                                                id="imagen-inflable-<%= inf.id_inflable %>"
+                                                class="img-thumb imagen-inflable"
+                                                data-titulo="inflable-<%= inf.id_inflable %>"
+                                                alt="<%= inf.nombre %>"
+                                                hidden
+                                            >
+
+                                            <span class="text-muted small">
+                                                Sin foto
+                                            </span>
+
+                                        </td>
+
+                                        <!-- NOMBRE -->
+                                        <td class="fw-bold">
+                                            <%= inf.nombre %>
+                                        </td>
+
+                                        <!-- MEDIDAS -->
+                                        <td>
+                                            <%= inf.medidas_espacio %>
+                                        </td>
+
+                                        <!-- ESTADO -->
+                                        <td>
+
+                                            <%
+                                                let badgeColor = 'success';
+
+                                                if (inf.estado_disponibilidad === 'rentado') {
+                                                    badgeColor = 'danger';
+                                                } else if (inf.estado_disponibilidad === 'requiere limpieza') {
+                                                    badgeColor = 'warning text-dark';
+                                                } else if (inf.estado_disponibilidad === 'mantenimiento') {
+                                                    badgeColor = 'secondary';
+                                                }
+                                            %>
+
+                                            <span class="badge bg-<%= badgeColor %>">
+                                                <%= inf.estado_disponibilidad %>
+                                            </span>
+
+                                        </td>
+
+                                        <!-- ACCIONES -->
+                                        <td class="text-end pe-3">
+
+                                            <!-- EDITAR -->
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-primary btn-editar-inflable"
+
+                                                data-id="<%= inf.id_inflable %>"
+                                                data-nombre="<%= inf.nombre %>"
+                                                data-medidas="<%= inf.medidas_espacio %>"
+                                                data-estado="<%= inf.estado_disponibilidad %>">
+
+                                                ✏️ Editar
+                                            </button>
+
+                                            <!-- ELIMINAR -->
+                                            <a href="/admin/inflables/eliminar/<%= inf.id_inflable %>"
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('¿Estás seguro de eliminar este inflable?');">
+
+                                                🗑️ Eliminar
+                                            </a>
+
+                                        </td>
+
+                                    </tr>
+
+                                <% }) %>
+
+                            <% } else { %>
+
+                                <tr>
+                                    <td colspan="5"
+                                        class="text-center text-muted py-4">
+
+                                        No hay brincolines o inflables registrados
+                                        en el catálogo.
+
+                                    </td>
+                                </tr>
+
+                            <% } %>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
+</div>
+
+<!-- JAVASCRIPT -->
+<script src="/js/loader_imagenes.js"></script>
+<script src="/js/inflable.js"></script>
 
 </body>
 </html>

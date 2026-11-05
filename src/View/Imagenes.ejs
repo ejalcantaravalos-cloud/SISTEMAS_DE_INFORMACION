@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Imágenes</title>
+    <link href="/css/CRUDImagenes.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <h1>Administrador de imágenes</h1>
+
+    <div class="formulario">
+        <h2 id="tituloFormulario">Agregar imagen</h2>
+
+        <form id="formImagen">
+
+            <input type="hidden" id="idImagen">
+
+            <label>Título de la imagen:</label>
+            <input
+                type="text"
+                id="titulo"
+                placeholder="Ej. hamburguesa-clasica"
+                required
+            >
+
+            <br><br>
+
+            <label>Seleccionar imagen:</label>
+            <input
+                type="file"
+                id="imagen"
+                accept="image/jpeg,image/png,image/webp"
+            >
+
+            <br><br>
+
+            <button type="submit" id="btnGuardar">
+                Guardar imagen
+            </button>
+
+            <button type="button" onclick="limpiarFormulario()">
+                Cancelar
+            </button>
+
+        </form>
+    </div>
+
+    <h2>Imágenes registradas</h2>
+
+    <div id="listaImagenes"></div>
+
+</div>
+
+<script>
+
+const API = '/api/imagenes';
+
+// Obtener todas las imágenes
+async function cargarImagenes() {
+    try {
+        const respuesta = await fetch(API);
+
+        if (!respuesta.ok) {
+            throw new Error('No se pudieron cargar las imágenes');
+        }
+
+        const imagenes = await respuesta.json();
+        const contenedor = document.getElementById('listaImagenes');
+
+        contenedor.innerHTML = '';
+
+        if (imagenes.length === 0) {
+            contenedor.textContent = 'No hay imágenes registradas.';
+            return;
+        }
+
+        imagenes.forEach(imagen => {
+            const tarjeta = document.createElement('div');
+            tarjeta.className = 'tarjeta';
+
+            const foto = document.createElement('img');
+            foto.src = imagen.Imagen_URL;
+            foto.alt = imagen.Titulo;
+
+            const datos = document.createElement('div');
+            datos.className = 'datos';
+
+            const titulo = document.createElement('h3');
+            titulo.textContent = imagen.Titulo;
+
+            const btnEditar = document.createElement('button');
+            btnEditar.textContent = 'Editar';
+            btnEditar.onclick = () => editarImagen(imagen);
+
+            const btnEliminar = document.createElement('button');
+            btnEliminar.textContent = 'Eliminar';
+            btnEliminar.onclick = () => eliminarImagen(imagen.ID_Imagen);
+
+            datos.append(titulo, btnEditar, btnEliminar);
+            tarjeta.append(foto, datos);
+            contenedor.appendChild(tarjeta);
+        });
+
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+    }
+}
+
+// Crear o actualizar imagen
+document.getElementById('formImagen').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById('idImagen').value;
+    const titulo = document.getElementById('titulo').value.trim();
+    const archivo = document.getElementById('imagen').files[0];
+
+    if (!id && !archivo) {
+        alert('Selecciona una imagen.');
+        return;
+    }
+
+    const datos = new FormData();
+    datos.append('Titulo', titulo);
+
+    if (archivo) {
+        datos.append('imagen', archivo);
+    }
+
+    const url = id ? `${API}/${id}` : API;
+    const metodo = id ? 'PUT' : 'POST';
+
+    try {
+        const respuesta = await fetch(url, {
+            method: metodo,
+            body: datos
+        });
+
+        const resultado = await respuesta.json();
+
+        if (!respuesta.ok) {
+            throw new Error(resultado.error || 'Ocurrió un error');
+        }
+
+        alert(resultado.message);
+        limpiarFormulario();
+        await cargarImagenes();
+
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+// Preparar formulario para editar
+function editarImagen(imagen) {
+    document.getElementById('idImagen').value = imagen.ID_Imagen;
+    document.getElementById('titulo').value = imagen.Titulo;
+
+    document.getElementById('tituloFormulario').textContent =
+        'Editar imagen';
+
+    document.getElementById('btnGuardar').textContent =
+        'Actualizar imagen';
+
+    document.getElementById('imagen').value = '';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Eliminar imagen
+async function eliminarImagen(id) {
+    if (!confirm('¿Deseas eliminar esta imagen?')) return;
+
+    try {
+        const respuesta = await fetch(`${API}/${id}`, {
+            method: 'DELETE'
+        });
+
+        const resultado = await respuesta.json();
+
+        if (!respuesta.ok) {
+            throw new Error(resultado.error || 'Error al eliminar');
+        }
+
+        alert(resultado.message);
+        await cargarImagenes();
+
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+// Limpiar formulario
+function limpiarFormulario() {
+    document.getElementById('formImagen').reset();
+    document.getElementById('idImagen').value = '';
+
+    document.getElementById('tituloFormulario').textContent =
+        'Agregar imagen';
+
+    document.getElementById('btnGuardar').textContent =
+        'Guardar imagen';
+}
+
+// Cargar al entrar a la página
+cargarImagenes();
+
+</script>
+
+</body>
+</html>

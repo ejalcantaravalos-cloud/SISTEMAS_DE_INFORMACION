@@ -1,0 +1,201 @@
+        :root {
+            --principal: #192740;
+            --secundario: #354967;
+            --rosa: #e8a7ce;
+            --fondo: #f7f8fc;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--fondo);
+            color: #273449;
+        }
+
+        /* BARRA DE NAVEGACIÓN */
+        .navbar {
+            background: var(--principal);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+        }
+
+        .navbar .nav-link {
+            color: #e2e8f0 !important;
+            transition: color 0.3s;
+        }
+
+        .navbar .nav-link:hover {
+            color: var(--rosa) !important;
+        }
+
+        /* PRESENTACIÓN */
+        .hero {
+            background: linear-gradient(
+                120deg,
+                #192740,
+                #354967,
+                #77567d
+            );
+
+            color: white;
+            padding: 100px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            right: -100px;
+            top: -100px;
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.3rem, 5vw, 4rem);
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #e2e8f0;
+            max-width: 600px;
+        }
+
+        .hero-icon {
+            font-size: 9rem;
+            color: #f4c6df;
+            opacity: 0.9;
+        }
+
+        .btn-personalizado {
+            background: var(--rosa);
+            color: #392b41;
+            border-radius: 30px;
+            padding: 12px 28px;
+            font-weight: 600;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-personalizado:hover {
+            background: white;
+            color: var(--principal);
+            transform: translateY(-3px);
+        }
+
+        /* SERVICIOS */
+        .seccion-servicios {
+            padding: 75px 0;
+        }
+
+        .titulo-seccion {
+            font-weight: 750;
+            color: var(--principal);
+        }
+
+        .card-servicio {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card-servicio:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .imagen-servicio {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+        }
+
+        .salones {
+            background: linear-gradient(135deg, #f7d6e8, #e7c9fb);
+        }
+
+        .inflables {
+            background: linear-gradient(135deg, #c0e9fa, #c4d7ff);
+        }
+
+        .restaurante {
+            background: linear-gradient(135deg, #ffe1b6, #ffd0c8);
+        }
+
+        .card-servicio .card-body {
+            padding: 25px;
+        }
+
+        .card-servicio h4 {
+            font-weight: 700;
+            color: var(--principal);
+        }
+
+        .card-servicio p {
+            color: #64748b;
+            min-height: 75px;
+        }
+
+        .btn-servicio {
+            background: var(--principal);
+            color: white;
+            border-radius: 25px;
+            padding: 10px 22px;
+            transition: 0.3s;
+        }
+
+        .btn-servicio:hover {
+            background: #526789;
+            color: white;
+        }
+
+        /* INFORMACIÓN */
+        .seccion-nosotros {
+            background: white;
+            padding: 70px 0;
+        }
+
+        .icono-info {
+            font-size: 2.5rem;
+            color: #9b6aa7;
+        }
+
+        /* PIE DE PÁGINA */
+        footer {
+            background: var(--principal);
+            color: #cbd5e1;
+            padding: 30px 0;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 70px 15px;
+                text-align: center;
+            }
+
+            .hero p {
+                margin: 0 auto 25px;
+            }
+
+            .hero-icon {
+                font-size: 6rem;
+            }
+
+            .card-servicio p {
+                min-height: auto;
+            }
+        }

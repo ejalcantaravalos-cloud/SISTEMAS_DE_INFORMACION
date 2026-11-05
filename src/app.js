@@ -9,7 +9,9 @@ const adminRoutes = require('./Routes/AdminRouters');
 const menuRoutes = require('./Routes/MenuRouters'); 
 const ordenRoutes = require('./Routes/OrdenRouter');
 const inflableRoutes = require('./Routes/inflableRouters'); 
-
+const imagenRoutes = require('./Routes/imagenRouters');
+const InflableController = require('./Controllers/InflableController');
+const ProductController = require('./Controllers/ProductController');
 const app = express();
 
 // Configurar motor de plantillas EJS y vistas
@@ -29,6 +31,20 @@ app.use('/admin', adminRoutes);
 app.use('/admin/menu', menuRoutes);      
 app.use('/ordenes', ordenRoutes); 
 app.use('/admin', inflableRoutes);
+app.use('/api/imagenes', imagenRoutes);
+app.get('/panel-imagenes', (req, res) => {
+    res.render('Imagenes');
+});
+// Página principal pública
+app.get('/', (req, res) => {
+    res.render('VistaPublico', {
+        user: req.user
+    });
+});
+
+app.get('/inflables', InflableController.obtenerCatalogoPublico);
+app.get('/restaurante', ProductController.catalogoPublico);
+
 app.use('/', router);                    
 
 

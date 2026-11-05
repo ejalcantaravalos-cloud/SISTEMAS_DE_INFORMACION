@@ -1,0 +1,109 @@
+        body {
+            background-color: #f7f8fc;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Navegación */
+        .navbar {
+            background-color: #192740;
+        }
+
+        /* Encabezado */
+        .hero {
+            background: linear-gradient(
+                120deg,
+                #192740,
+                #77567d
+            );
+            color: white;
+            padding: 65px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-weight: 800;
+        }
+
+        .hero p {
+            color: #e2e8f0;
+        }
+
+        /* Tarjetas de platillos */
+        .card-platillo {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card-platillo:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+
+        /* Contenedor de fotografía */
+        .imagen-contenedor {
+            width: 100%;
+            height: 220px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .imagen-contenedor img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Información del platillo */
+        .card-platillo .card-body {
+            padding: 22px;
+        }
+
+        .nombre-platillo {
+            font-weight: 700;
+            color: #192740;
+        }
+
+        .categoria {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .precio {
+            color: #198754;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .badge-especial {
+            background-color: #ffe8a3;
+            color: #654700;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        /* Botón volver */
+        .btn-volver {
+            background-color: #192740;
+            color: white;
+            border-radius: 25px;
+            padding: 10px 25px;
+        }
+
+        .btn-volver:hover {
+            background-color: #526789;
+            color: white;
+        }
+
+        footer {
+            background-color: #192740;
+            color: white;
+            padding: 25px;
+        }

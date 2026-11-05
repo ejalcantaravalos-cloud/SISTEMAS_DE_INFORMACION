@@ -84,10 +84,10 @@ exports.crearOrden = async (req, res) => {
         );
 
         await connection.commit();
-        return res.status(201).json({
-            message: 'Orden registrada exitosamente',
-            pedido_id: resultado.insertId
-        });
+   return res.redirect(
+    303,
+    `/ordenes/cobro/${resultado.insertId}`
+);
     } catch (error) {
         await connection.rollback();
         console.error('Error al registrar el pedido:', error);
@@ -108,4 +108,86 @@ exports.crearOrden = async (req, res) => {
             pedidos: resultados 
         });
     });
+};
+
+exports.mostrarCobro = async (req, res) => {
+    const pedidoId = Number(req.params.id);
+
+    if (!Number.isSafeInteger(pedidoId) || pedidoId < 1) {
+        return res.status(400).send('ID de pedido inválido');
+    }
+
+    try {
+        // Consultar la orden registrada
+        const [ordenes] = await conexion.promise().query(
+            `SELECT * FROM pedido
+             WHERE id = ? AND id_usuario = ?`,
+            [pedidoId, req.user.id]
+        );
+
+        if (ordenes.length === 0) {
+            return res.status(404).send('Pedido no encontrado');
+        }
+
+        // Consultar los alimentos de esa orden
+        const [productos] = await conexion.promise().query(
+            `SELECT
+                p.nombre,
+                d.cantidad,
+                d.precio_unitario AS precio
+             FROM detalle_pedido d
+             INNER JOIN producto p
+                ON d.producto_id = p.id
+             WHERE d.pedido_id = ?`,
+            [pedidoId]
+        );
+
+        res.render('cobro', {
+            user: req.user,
+            orden: ordenes[0],
+            productos,
+            pagoActualizado: req.query.guardado === '1'
+        });
+
+    } catch (error) {
+        console.error('Error al mostrar cobro:', error);
+        res.status(500).send('Error al consultar la orden');
+    }
+};
+
+
+// Registrar el estado ficticio del pago
+exports.actualizarPago = async (req, res) => {
+    const pedidoId = Number(req.params.id);
+    const { estado_pago } = req.body;
+
+    if (!Number.isSafeInteger(pedidoId) || pedidoId < 1) {
+        return res.status(400).send('ID de pedido inválido');
+    }
+
+    if (!['Pagado', 'No pagado'].includes(estado_pago)) {
+        return res.status(400).send('Estado de pago inválido');
+    }
+
+    try {
+        const [resultado] = await conexion.promise().query(
+            `UPDATE pedido
+             SET estado_pago = ?
+             WHERE id = ? AND id_usuario = ?`,
+            [estado_pago, pedidoId, req.user.id]
+        );
+
+        if (resultado.affectedRows === 0) {
+            return res.status(404).send('Pedido no encontrado');
+        }
+
+        return res.redirect(
+            303,
+            `/ordenes/cobro/${pedidoId}?guardado=1`
+        );
+
+    } catch (error) {
+        console.error('Error al actualizar pago:', error);
+        res.status(500).send('Error al registrar el pago');
+    }
 };
