@@ -7,3 +7,4 @@ datos_mysql/
 # Archivos del sistema operativo o logs si los hubiera
 .DS_Store
 Thumbs.db
+src/env/.env
