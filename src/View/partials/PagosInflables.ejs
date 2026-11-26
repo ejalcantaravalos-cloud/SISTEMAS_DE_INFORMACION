@@ -1,0 +1,59 @@
+<section class="card tarjeta mb-4 hb-balance" id="saldosInflables">
+    <div class="card-body">
+        <h2 class="h4 fw-bold">Saldos pendientes de inflables</h2>
+        <p class="small text-secondary">
+            Para liquidar una reservación, abre tu turno. El sistema cobrará exactamente
+            el saldo actual y lo guardará como un nuevo pago de la misma reservación.
+            No cambia automáticamente el estado del evento.
+        </p>
+        <% if (!saldos || saldos.length === 0) { %>
+            <div class="alert alert-success mb-0">No hay reservaciones con saldo pendiente.</div>
+        <% } else { %>
+            <div class="table-responsive">
+                <table class="table align-middle table-striped">
+                    <thead>
+                        <tr>
+                            <th>Folio</th><th>Cliente / inflable</th>
+                            <th>Total</th><th>Abonado</th><th>Saldo</th><th>Liquidar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% saldos.forEach(function(r) { %>
+                            <tr>
+                                <td>#<%= r.id %></td>
+                                <td><strong><%= r.cliente %></strong><br>
+                                    <span class="text-secondary small"><%= r.inflable %></span>
+                                </td>
+                                <td>$<%= Number(r.total).toFixed(2) %></td>
+                                <td>$<%= Number(r.abonado).toFixed(2) %></td>
+                                <td class="fw-bold">$<%= Number(r.saldo).toFixed(2) %></td>
+                                <td style="min-width: 220px;">
+                                    <% if (caja && caja.turno_id &&
+                                        Number(user?.id ?? user?.id_usuario) === Number(caja.usuario_id)) { %>
+                                        <form action="/rentas/reservaciones/<%= r.id %>/liquidar"
+                                              method="POST"
+                                              onsubmit="return confirm('¿Registrar el pago final del folio #<%= r.id %> por $<%= Number(r.saldo).toFixed(2) %> MXN?');">
+                                            <select name="metodo_pago" class="form-select form-select-sm mb-1" required>
+                                                <option value="EFECTIVO">Efectivo</option>
+                                                <option value="TARJETA">Tarjeta</option>
+                                                <option value="TRANSFERENCIA">Transferencia</option>
+                                            </select>
+                                            <input type="text" name="referencia" maxlength="120"
+                                                   placeholder="Referencia (opcional)"
+                                                   class="form-control form-control-sm mb-1">
+                                            <button type="submit" class="btn btn-success btn-sm w-100">
+                                                Liquidar $<%= Number(r.saldo).toFixed(2) %>
+                                            </button>
+                                        </form>
+                                    <% } else { %>
+                                        <span class="small text-secondary">Abre tu turno para cobrar.</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+    </div>
+</section>

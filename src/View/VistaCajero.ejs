@@ -1,143 +1,217 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Toma de Órdenes - Caja</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/css/CajeroOrdenes.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toma de órdenes | ZABAVA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root { --morado: #67438d; --morado-oscuro: #4d326d; }
+        body { background: #f8f7fc; color: #292436; }
+        .barra-caja { background: var(--morado-oscuro); color: white; }
+        .barra-caja a { color: white; text-decoration: none; }
+        .barra-caja a:hover { text-decoration: underline; }
+        .panel-caja { background: white; border: 1px solid #e8e2ee; border-radius: 1rem; box-shadow: 0 6px 18px rgba(40,22,75,.04); }
+        .btn-morado { background: var(--morado); color: #fff; border-color: var(--morado); }
+        .btn-morado:hover, .btn-morado:focus { background: var(--morado-oscuro); color: white; border-color: var(--morado-oscuro); }
+        .tarjeta-platillo { height: 100%; border: 1px solid #e9e4f0; border-radius: 1rem; overflow: hidden; background: white; display: flex; flex-direction: column; }
+        .foto-platillo { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #efebf4; }
+        .foto-vacia { aspect-ratio: 4 / 3; background: #eee9f5; display: grid; place-items: center; color: #827691; font-size: 2rem; }
+        .tarjeta-platillo .interior { padding: .85rem; display:flex; flex-direction:column; flex:1; }
+        .detalle-item { border-bottom: 1px solid #ede9f0; padding: .75rem 0; }
+        .detalle-item:last-child { border-bottom: 0; }
+        .texto-suave { color: #756c7d; }
+        .receta-seccion { border: 1px solid #e7e0ee; background: #faf9fd; border-radius: .8rem; padding: .9rem; margin-bottom: .8rem; }
+        .receta-fila { padding: .55rem 0; border-top: 1px solid #eee8f3; }
+        .receta-fila:first-of-type { border-top: 0; }
+        .resumen-sticky { position: sticky; top: 1rem; }
+        @media(max-width: 991px) { .resumen-sticky { position: static; } }
+        /* Desplazamiento del carrito y del modal de personalización. */
+        #listaProductos {
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overflow-wrap: anywhere;
+        }
+        #formPersonalizar {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+        }
+        #modalPersonalizar .modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        #modalPersonalizar .modal-header,
+        #modalPersonalizar .modal-footer {
+            flex-shrink: 0;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/Avisos.css">
 </head>
 <body>
+    <nav class="barra-caja py-3 mb-4">
+        <div class="container-fluid px-4 d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <strong><i class="bi bi-bag-check me-2"></i>ZABAVA · Caja restaurante</strong>
+            <div class="d-flex gap-3 align-items-center small flex-wrap">
+                <span><i class="bi bi-person-circle me-1"></i><%= user ? user.email : '' %></span>
+                <a href="/rentas">Mi caja y rentas</a>
+                <a href="/ordenes/pedidos">Ver pedidos</a>
+                <a href="/ordenes/pedidos/pendientes-pago" class="btn btn-sm btn-warning text-dark fw-semibold">
+                    <i class="bi bi-cash-coin me-1"></i> Pendientes de pago
+                </a>
+                <a href="/logout">Cerrar sesión</a>
+            </div>
+        </div>
+    </nav>
 
-  <div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-      <div>
-        <h4 class="fw-semibold mb-0">Caja de Ordenes - Restaurante de comida rapida</h4>
-        <small class="text-muted">Cajero activo: <%= user ? user.email : 'Caja Principal' %></small>
-      </div>
+    <main class="container-fluid px-4 pb-5">
+        <div class="mb-4">
+            <h1 class="h3 fw-bold mb-1"><%= edicion ? `Editar orden #${edicion.id}` : 'Toma de órdenes' %></h1>
+            <% if (edicion) { %><p class="text-warning-emphasis">Solo se puede guardar mientras siga enviada. Los precios se validan con el menú vigente.</p><a href="/ordenes/pedidos" class="btn btn-outline-secondary btn-sm mb-2">Salir sin guardar</a><% } %>
+            <p class="texto-suave mb-0">Selecciona un platillo y personalízalo con casillas y porciones extras.</p>
+        </div>
 
-    </div>
-     <div style="display: flex; gap: 10px;">
-       <a href="/ordenes/pedidos" class="btn-sm btn-primary" style="text-decoration: none;">Ver pedidos</a>
-      
-  </div>
-    <div class="row g-3">
-  
-      <div class="col-lg-8">
-        <div class="panel-caja p-3">
-          <h6 class="fw-bold mb-3">Menú Disponible</h6>
-          
-          <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3">
-            <% if (productos && productos.length > 0) { %>
-              <% productos.forEach(p => { %>
-                <div class="col">
-                  <div class="card-platillo h-100 d-flex flex-column justify-content-between p-2">
-                    <div>
-                     
-                                   
-<!-- Fotografía del platillo -->
-<div class="img-placeholder mb-2">
 
-    <img
-        id="imagen-<%= p.id %>"
-        class="imagen-platillo"
-        data-titulo="platillo-<%= p.id %>"
-        data-titulo-alternativo="<%= p.nombre %>"
-        alt="<%= p.nombre %>"
-        style="display: none;"
-    >
 
-    <span id="sin-imagen-<%= p.id %>">
-        Sin imagen
-    </span>
-
-</div>
-
-                      
-                      <div class="d-flex justify-content-between align-items-start">
-                        <h6 class="fs-6 mb-1 text-truncate" title="<%= p.nombre %>"><%= p.nombre %></h6>
-                        <% if (p.especial) { %>
-                          <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">★</span>
+        <div class="row g-4 align-items-start">
+            <section class="col-lg-8" aria-labelledby="tituloMenu">
+                <div class="panel-caja p-3 p-md-4">
+                    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
+                        <h2 id="tituloMenu" class="h5 fw-bold mb-0">Platillos disponibles</h2>
+                        <div class="input-group" style="max-width: 320px;">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="search" id="buscarPlatillo" class="form-control" placeholder="Buscar platillo o categoría" aria-label="Buscar platillo">
+                        </div>
+                    </div>
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3" id="catalogoPlatillos">
+                        <% if (productos && productos.length) { %>
+                            <% productos.forEach(p => { %>
+                                <div class="col producto-columna" data-busqueda="<%= (p.nombre + ' ' + (p.categoria_nombre || '')).toLowerCase() %>">
+                                    <article class="tarjeta-platillo">
+                                        <% if (p.imagen_url) { %>
+                                            <img src="<%= p.imagen_url %>" alt="Fotografía de <%= p.nombre %>" class="foto-platillo" loading="lazy">
+                                        <% } else { %>
+                                            <div class="foto-vacia" aria-hidden="true"><i class="bi bi-egg-fried"></i></div>
+                                        <% } %>
+                                        <div class="interior">
+                                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                                <h3 class="h6 fw-bold mb-1"><%= p.nombre %></h3>
+                                                <% if (p.favorito) { %><span class="badge text-bg-warning">★</span><% } %>
+                                            </div>
+                                            <div class="small texto-suave mb-2"><%= p.categoria_nombre || 'Platillo preparado' %></div>
+                                            <% if (p.descripcion) { %><p class="small texto-suave mb-2"><%= p.descripcion %></p><% } %>
+                                            <div class="mt-auto">
+                                                <p class="fw-bold fs-5 text-success mb-2">$<%= Number(p.precio_base).toFixed(2) %></p>
+                                                <% if (p.ingredientes && p.ingredientes.length) { %>
+                                                    <button class="btn btn-morado w-100 btn-agregar" type="button" data-producto="<%= JSON.stringify(p) %>">
+                                                        <i class="bi bi-plus-lg me-1"></i> Elegir y personalizar
+                                                    </button>
+                                                <% } else { %>
+                                                    <button class="btn btn-outline-secondary w-100" type="button" disabled>Receta no configurada</button>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="col-12"><div class="alert alert-info mb-0">No hay platillos preparados disponibles en un menú activo. Revisa su receta y publicación.</div></div>
                         <% } %>
-                      </div>
-                      <span class="fw-bold text-success">$<%= Number(p.precio).toFixed(2) %></span>
                     </div>
-
-                    
-                    <div class="mt-2 pt-2 border-top">
-                      <button type="button" 
-                              class="btn btn-sm btn-primary w-100 btn-agregar" 
-                              data-id="<%= p.id %>"
-                              data-nombre="<%= p.nombre %>"
-                              data-precio="<%= p.precio %>">
-                        + Agregar
-                      </button>
-                    </div>
-                  </div>
+                    <div id="sinCoincidencias" class="text-center texto-suave d-none py-4">No se encontraron platillos con ese nombre.</div>
                 </div>
-              <% }) %>
-            <% } else { %>
-              <div class="col-12 text-center text-muted py-4">
-                No hay platillos registrados o activos en el menú.
-              </div>
-            <% } %>
-          </div>
+            </section>
+
+            <aside class="col-lg-4" aria-labelledby="tituloPedido">
+                <div class="panel-caja p-3 p-md-4 resumen-sticky">
+                    <h2 id="tituloPedido" class="h5 fw-bold border-bottom pb-3">Detalles del pedido</h2>
+                    <form id="formOrden" action="<%= edicion ? `/ordenes/pedidos/${edicion.id}/editar` : '/ordenes/api/ordenes/crear' %>" data-edicion="<%= JSON.stringify(edicion) %>" method="POST">
+                        <% if (edicion) { %><input type="hidden" name="version" value="<%= edicion.version %>"><% } %>
+                        <div class="mb-3">
+                            <label for="tipoOrden" class="form-label fw-semibold small">Tipo de orden</label>
+                            <select class="form-select" id="tipoOrden" name="tipo_orden">
+                                <option value="Mesa">Consumo en mesa</option>
+                                <option value="Para llevar">Para llevar</option>
+                            </select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-5" id="campoMesa">
+                                <label for="numeroMesa" class="form-label fw-semibold small">Número de mesa</label>
+                                <input class="form-control" type="number" min="1" step="1" id="numeroMesa" name="numero_mesa" required placeholder="Ej. 4">
+                            </div>
+                            <div class="col" id="contenedorCliente">
+                                <label for="nombreCliente" class="form-label fw-semibold small">Nombre o apodo (opcional)</label>
+                                <input class="form-control" type="text" maxlength="100" id="nombreCliente" name="nombre_cliente" placeholder="Ej. Ana">
+                            </div>
+                        </div>
+                        <h3 class="h6 fw-semibold mb-2">Platillos seleccionados</h3>
+                        <div id="listaProductos" class="border rounded-3 px-3 mb-3" aria-live="polite">
+                            <p class="texto-suave small text-center my-4" id="mensajeVacio">Aún no has agregado platillos.</p>
+                        </div>
+                        <input type="hidden" id="inputDetalles" name="detalles">
+                        <div class="mb-3">
+                            <label for="notaGeneral" class="form-label fw-semibold small">Nota general (opcional)</label>
+                            <textarea class="form-control" id="notaGeneral" name="nota" rows="2" maxlength="2000" placeholder="Solo para indicaciones extraordinarias"></textarea>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3 mb-3">
+                            <span class="fw-bold">Total estimado</span>
+                            <strong class="fs-4 text-success" id="textoTotal">$0.00</strong>
+                        </div>
+                        <button class="btn btn-success w-100 py-2 fw-semibold" type="submit" id="btnGuardar" disabled>
+                            <i class="bi bi-check-circle me-1"></i> <%= edicion ? 'Guardar cambios' : 'Registrar orden' %>
+                        </button>
+                        <p class="texto-suave small mt-2 mb-0">El importe definitivo se valida en MySQL al guardar.</p>
+                    </form>
+                </div>
+            </aside>
         </div>
-      </div>
+    </main>
 
-      <div class="col-lg-4">
-        <div class="panel-caja p-3 orden-resumen">
-          <h6 class="fw-bold mb-3 border-bottom pb-2">Detalles del Pedido</h6>
-
-          <form id="formOrden" action="/ordenes/api/ordenes/crear" method="POST" onsubmit="prepararEnvio(event)">
-            
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Tipo de Orden:</label>
-              <select class="form-select form-select-sm" name="tipo_orden" id="tipoOrden" onchange="toggleMesaField()">
-                <option value="Mesa">Mesa (Consumo Local)</option>
-                <option value="Para llevar">Para llevar</option>
-              </select>
+    <!-- Modal de personalización: también permite editar un renglón del pedido -->
+    <div class="modal fade" id="modalPersonalizar" tabindex="-1" aria-labelledby="tituloModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title h5 fw-bold" id="tituloModal">Personalizar platillo</h2>
+                        <div class="small texto-suave" id="subtituloModal"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="formPersonalizar">
+                    <div class="modal-body">
+                        <div id="seccionesIngredientes"></div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-sm-4">
+                                <label for="cantidadPlatillo" class="form-label fw-semibold">Cantidad</label>
+                                <input id="cantidadPlatillo" class="form-control" type="number" min="1" max="99" step="1" value="1" required>
+                            </div>
+                            <div class="col-sm-8">
+                                <label for="notaCocina" class="form-label fw-semibold">Nota de cocina (opcional)</label>
+                                <input id="notaCocina" class="form-control" type="text" maxlength="1000" placeholder="Solo si no basta con las casillas">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-between flex-wrap">
+                        <span class="fw-bold">Subtotal: <span class="text-success" id="subtotalModal">$0.00</span></span>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-morado">Agregar al pedido</button>
+                        </div>
+                    </div>
+                </form>
             </div>
-
-            <div class="row g-2 mb-3">
-              <div class="col-6" id="campoMesa">
-                <label class="form-label small fw-medium">Número de Mesa:</label>
-                <input type="number" name="numero_mesa" id="numeroMesa" class="form-control form-control-sm" placeholder="Ej. 4" required>
-              </div>
-              <div class="col-6" id="contenedorCliente">
-                <label class="form-label small fw-medium">Nombre Cliente:</label>
-                <input type="text" name="nombre_cliente" class="form-control form-control-sm" placeholder="Opcional">
-              </div>
-            </div>
-
-            <label class="form-label small fw-medium">Alimentos Seleccionados:</label>
-            <div id="listaProductos" class="mb-3 border rounded p-2 bg-light" style="min-height: 120px; max-height: 200px; overflow-y: auto;">
-              <p class="text-muted text-center small mb-0 mt-3" id="mensajeVacio">Aún no se han agregado platillos.</p>
-            </div>
-            <input type="hidden" name="detalles" id="inputDetalles">
-
-        
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Notas / Modificaciones:</label>
-              <textarea name="nota" class="form-control form-control-sm" rows="2" placeholder="Ej. Sin cebolla..."></textarea>
-            </div>
-            
-            <div class="d-flex justify-content-between align-items-center mb-3 pt-2 border-top">
-              <span class="fw-bold">Total:</span>
-              <span class="fs-5 fw-bold text-success" id="textoTotal">$0.00</span>
-            </div>
-
-            <button type="submit" class="btn btn-success w-100 py-2 fw-medium" id="btnGuardar" disabled>
-              ✓ Registrar Orden
-            </button>
-          </form>
         </div>
-      </div>
     </div>
-  </div>
 
-
-<script src="/js/loader_imagenes.js"></script>
-<script src="/js/cajero.js"></script>
+    <%- include('partials/Aviso', { avisoDinamico: true }) %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/cajero.js"></script>
 </body>
 </html>

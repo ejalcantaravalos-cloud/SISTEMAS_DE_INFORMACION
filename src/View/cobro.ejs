@@ -1,164 +1,209 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Cobro de pedido</title>
-
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet">
-      <link rel="stylesheet" href="/css/Cobro.css">
-    </div>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cobro del pedido #<%= orden.id %> | ZABAVA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root { --violeta: #67438d; --violeta-oscuro: #4d326d; }
+        body { background: #f8f7fc; color: #292436; }
+        .barra { background: var(--violeta-oscuro); color: white; }
+        .barra a { color: white; }
+        .panel { border: 1px solid #e7e1ee; border-radius: 1.1rem; background: white; box-shadow: 0 7px 24px rgba(45, 20, 65, .04); }
+        .btn-violeta { background: var(--violeta); color: white; border-color: var(--violeta); }
+        .btn-violeta:hover, .btn-violeta:focus { background: var(--violeta-oscuro); border-color: var(--violeta-oscuro); color: white; }
+        .text-violeta { color: var(--violeta-oscuro); }
+        .dato { font-size: .9rem; color: #6e657a; }
+        .detalle-extra { font-size: .83rem; color: #675c72; margin: .2rem 0; }
+        .total { font-size: 2rem; font-weight: 800; color: var(--violeta-oscuro); }
+        @media print {
+            body { background: white; }
+            .no-imprimir, .barra, .alert { display: none !important; }
+            .panel { border: 0; box-shadow: none; }
+            main { max-width: none !important; }
+            .col-lg-7, .col-lg-5 { width: 100% !important; }
+            .table { font-size: 12px; }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/Avisos.css">
 </head>
+<body>
+    <% const dinero = valor => Number(valor || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }); %>
+    <nav class="barra py-3 no-imprimir">
+        <div class="container d-flex justify-content-between align-items-center gap-3 flex-wrap">
+            <strong><i class="bi bi-receipt-cutoff me-2"></i>ZABAVA · Cobro</strong>
+            <div class="d-flex gap-3 small">
+                <a href="/rentas">Mi caja</a>
+                <a href="/ordenes/caja">Volver a caja</a>
+                <a href="/ordenes/pedidos">Ver pedidos</a>
+            </div>
+        </div>
+    </nav>
 
-<body class="bg-light">
-       <div>
-    <a href="/ordenes/caja " class="btn btn-sm btn-outline-secondary">
-        ← Volver al Panel
-    </a>
-</div>
-
-<div class="container py-5">
-    <div class="card shadow mx-auto"
-         style="max-width: 650px;">
-
-        <div class="card-header bg-success text-white">
-            <h4 class="mb-0 text-center">
-                Resumen de la orden
-            </h4>
+    <main class="container py-4 py-md-5">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Pedido #<%= orden.id %></h1>
+                <p class="text-secondary mb-0">Resumen del pedido, personalizaciones y cobro.</p>
+            </div>
+            <button type="button" class="btn btn-outline-secondary no-imprimir" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i> Imprimir resumen
+            </button>
         </div>
 
-        <div class="card-body p-4">
-
-            <h5>Pedido #<%= orden.id %></h5>
-
-            <p>
-                <strong>Tipo:</strong>
-                <%= orden.tipo_orden %>
-            </p>
-
-            <% if (orden.tipo_orden === 'Mesa') { %>
-                <p>
-                    <strong>Mesa:</strong>
-                    <%= orden.numero_mesa %>
-                </p>
-            <% } %>
-
-            <p>
-                <strong>Cliente:</strong>
-                <%= orden.nombre_cliente || 'Sin nombre' %>
-            </p>
-
-            <p>
-                <strong>Estado de pago:</strong>
-
-                <span class="badge <%= orden.estado_pago === 'Pagado'
-                    ? 'bg-success'
-                    : 'bg-warning text-dark' %>">
-                    <%= orden.estado_pago %>
-                </span>
-            </p>
-
-            <hr>
-
-            <h6>Productos solicitados</h6>
-
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <% productos.forEach(p => { %>
-                        <tr>
-                            <td><%= p.nombre %></td>
-                            <td><%= p.cantidad %></td>
-                            <td>
-                                $<%= (
-                                    Number(p.precio) *
-                                    Number(p.cantidad)
-                                ).toFixed(2) %>
-                            </td>
-                        </tr>
-                    <% }) %>
-                </tbody>
-            </table>
-
-            <% if (orden.nota) { %>
-                <p>
-                    <strong>Notas:</strong>
-                    <%= orden.nota %>
-                </p>
-            <% } %>
-
-            <h3 class="text-end text-success">
-                Total: $<%= Number(orden.total).toFixed(2) %>
-            </h3>
-
-            <hr>
-
-            <% if (pagoActualizado) { %>
-                <div class="alert alert-success">
-                    Estado de pago actualizado correctamente.
-                </div>
-            <% } %>
-
-            <h5 class="text-center mb-3">
-                ¿El cliente ha pagado?
-            </h5>
-
-            <form
-              action="/ordenes/cobro/<%= orden.id %>/estado-pago"
-              method="POST">
-
-                <div class="row g-2">
-
-                    <div class="col-6">
-                        <button
-                          type="submit"
-                          name="estado_pago"
-                          value="Pagado"
-                          class="btn btn-success w-100 py-3">
-                            ✓ Pagado
-                        </button>
+        <div class="row g-4">
+            <section class="col-lg-7">
+                <article class="panel p-3 p-md-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                        <h2 class="h5 fw-bold mb-0">Datos de la orden</h2>
+                        <span class="badge <%= orden.estado === 'Entregado' ? 'text-bg-success' : orden.estado === 'Cancelado' ? 'text-bg-danger' : 'text-bg-secondary' %>">
+                            <%= orden.estado %>
+                        </span>
                     </div>
-
-                    <div class="col-6">
-                        <button
-                          type="submit"
-                          name="estado_pago"
-                          value="No pagado"
-                          class="btn btn-danger w-100 py-3">
-                            ✕ No pagado
-                        </button>
+                    <% if (orden.estado === 'Enviado' && !orden.reservacion_id && orden.tipo_entrega !== 'EVENTO') { %>
+                        <div class="d-flex gap-2 mb-3 no-imprimir">
+                            <a class="btn btn-sm btn-outline-primary" href="/ordenes/pedidos/<%= orden.id %>/editar">Editar orden</a>
+                            <% if ((user.roles || []).some(r => ['Cajero restaurante', 'Administrador'].includes(r))) { %>
+                                <a class="btn btn-sm btn-outline-danger" href="/restaurante/cancelaciones?pedido=<%= orden.id %>">Cancelar orden</a>
+                            <% } %>
+                        </div>
+                    <% } %>
+                    <div class="row g-3">
+                        <div class="col-sm-6"><div class="dato">Tipo de orden</div><strong><%= orden.tipo_entrega === 'EN_LOCAL' ? 'Consumo en mesa' : orden.tipo_entrega === 'PARA_LLEVAR' ? 'Para llevar' : 'Evento' %></strong></div>
+                        <div class="col-sm-6"><div class="dato">Cliente</div><strong><%= orden.nombre_cliente || 'Sin nombre especificado' %></strong></div>
+                        <% if (orden.numero_mesa) { %>
+                            <div class="col-sm-6"><div class="dato">Mesa</div><strong><%= orden.numero_mesa %></strong></div>
+                        <% } %>
+                        <div class="col-sm-6"><div class="dato">Referencia</div><span><%= orden.nombre_referencia || '—' %></span></div>
                     </div>
+                    <% if (orden.nota) { %><hr><div class="dato">Nota general</div><p class="mb-0"><%= orden.nota %></p><% } %>
+                </article>
 
+                <article class="panel p-3 p-md-4">
+                    <h2 class="h5 fw-bold mb-3">Platillos y modificaciones</h2>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead class="table-light"><tr><th>Producto</th><th class="text-center">Cant.</th><th class="text-end">Subtotal</th></tr></thead>
+                            <tbody>
+                                <% productos.forEach(p => { %>
+                                    <tr>
+                                        <td>
+                                            <strong><%= p.nombre %></strong>
+                                            <div class="dato">Base: <%= dinero(p.precio) %> por unidad</div>
+                                            <% (p.modificaciones || []).filter(m => m.accion === 'QUITADO' || m.accion === 'EXTRA').forEach(m => { %>
+                                                <div class="detalle-extra">
+                                                    <% if (m.accion === 'QUITADO') { %>
+                                                        <i class="bi bi-dash-circle me-1"></i> Sin <%= m.nombre %>
+                                                    <% } else { %>
+                                                        <i class="bi bi-plus-circle me-1"></i> <%= m.nombre %> extra × <%= m.porciones %>
+                                                        (<%= dinero(Number(m.precio_extra_unitario) * Number(m.porciones)) %> por unidad)
+                                                    <% } %>
+                                                </div>
+                                            <% }) %>
+                                            <% (p.opciones || []).forEach(o => { %>
+                                                <div class="detalle-extra"><%= o.nombre %> (<%= dinero(o.ajuste) %> por unidad)</div>
+                                            <% }) %>
+                                            <% if (p.nota_cocina) { %>
+                                                <div class="detalle-extra"><i class="bi bi-chat-left-text me-1"></i> <%= p.nota_cocina %></div>
+                                            <% } %>
+                                        </td>
+                                        <td class="text-center"><%= p.cantidad %></td>
+                                        <td class="text-end fw-semibold"><%= dinero(p.subtotal) %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+                        <strong>Total de la orden</strong>
+                        <span class="total"><%= dinero(orden.total) %></span>
+                    </div>
+                </article>
+            </section>
+
+            <aside class="col-lg-5">
+                <section class="panel p-3 p-md-4 mb-4">
+                    <h2 class="h5 fw-bold mb-3">Estado del cobro</h2>
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                        <span>Estado</span>
+                        <span class="badge <%= orden.estado_pago === 'Pagado' ? 'text-bg-success' : 'text-bg-warning' %>"><%= orden.estado_pago %></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2"><span>Total</span><strong><%= dinero(orden.total) %></strong></div>
+                    <div class="d-flex justify-content-between mb-2"><span>Pagado</span><strong><%= dinero(orden.total_pagado) %></strong></div>
+                    <div class="d-flex justify-content-between border-top pt-3 mb-3"><strong>Pendiente</strong><strong class="text-violeta fs-4"><%= dinero(orden.saldo_pendiente) %></strong></div>
+
+                    <% if (pagos.length) { %>
+                        <h3 class="h6 fw-bold mt-4">Pagos registrados</h3>
+                        <ul class="list-group list-group-flush mb-3">
+                            <% pagos.forEach(p => { %>
+                                <li class="list-group-item px-0 d-flex justify-content-between gap-2">
+                                    <span><%= p.metodo %><% if (p.referencia) { %><small class="text-secondary d-block">Ref.: <%= p.referencia %></small><% } %></span>
+                                    <strong><%= dinero(p.importe) %></strong>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    <% } %>
+
+                    <% if (orden.estado === 'Cancelado') { %>
+                        <div class="alert alert-danger mb-0">Este pedido está cancelado y no puede cobrarse.</div>
+                    <% } else if (Number(orden.saldo_pendiente) <= 0) { %>
+                        <div class="alert alert-success mb-0"><i class="bi bi-check-circle me-2"></i> No hay saldo pendiente.</div>
+                    <% } else if (!turno) { %>
+                        <div class="alert alert-info no-imprimir">Para recibir pagos debes abrir un turno de caja.</div>
+                        <% if (cajas.length) { %>
+                            <form method="POST" action="/ordenes/turno/abrir" class="no-imprimir">
+                                <input type="hidden" name="pedido_id" value="<%= orden.id %>">
+                                <div class="mb-3"><label class="form-label" for="caja_id">Caja</label>
+                                    <select class="form-select" name="caja_id" id="caja_id" required>
+                                        <option value="">Selecciona una caja</option>
+                                        <% cajas.forEach(c => { %><option value="<%= c.id %>"><%= c.nombre %></option><% }) %>
+                                    </select>
+                                </div>
+                                <div class="mb-3"><label class="form-label" for="fondo_inicial">Fondo inicial ($)</label>
+                                    <input class="form-control" name="fondo_inicial" id="fondo_inicial" type="number" min="0" step="0.01" value="0" required>
+                                </div>
+                                <button class="btn btn-violeta w-100" type="submit">Abrir turno de caja</button>
+                            </form>
+                        <% } else { %>
+                            <div class="alert alert-warning mb-0">No hay cajas disponibles en este momento.</div>
+                        <% } %>
+                    <% } else { %>
+                        <div class="dato mb-3"><i class="bi bi-cash-stack me-1"></i> Turno abierto: <strong><%= turno.caja_nombre %></strong> (#<%= turno.id %>)</div>
+                        <% if (!metodosPago.length) { %>
+                            <div class="alert alert-warning">No hay métodos de pago configurados en la base de datos.</div>
+                        <% } else { %>
+                            <form action="/ordenes/cobro/<%= orden.id %>/pagar" method="POST" class="no-imprimir" id="formPago">
+                                <input type="hidden" name="version" value="<%= orden.version %>">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold" for="metodo_pago_id">Método de pago</label>
+                                    <select class="form-select" name="metodo_pago_id" id="metodo_pago_id" required>
+                                        <option value="">Selecciona el método</option>
+                                        <% metodosPago.forEach(m => { %>
+                                            <option value="<%= m.id %>"><%= m.nombre %></option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="referencia">Referencia / folio (opcional)</label>
+                                    <input class="form-control" type="text" id="referencia" name="referencia" maxlength="120" placeholder="Ej. folio de transferencia o tarjeta">
+                                </div>
+                                <p class="dato">Al confirmar se registrará el saldo pendiente completo: <strong><%= dinero(orden.saldo_pendiente) %></strong>. El importe se calcula en el servidor.</p>
+                                <button class="btn btn-violeta w-100 py-2" type="submit" onclick="return confirm('¿Confirmas que recibiste el pago completo de este pedido?')">
+                                    <i class="bi bi-check2-circle me-1"></i> Registrar pago
+                                </button>
+                            </form>
+                        <% } %>
+                    <% } %>
+                </section>
+                <div class="small text-secondary no-imprimir">
+                    Esta pantalla registra pagos en MySQL. No procesa transferencias ni cobros con terminal bancaria; verifica el ingreso antes de confirmarlo.
                 </div>
-                <div class="mt-3 no-imprimir">
-    <button
-        type="button"
-        class="btn btn-outline-dark w-100 py-2"
-        onclick="window.print()">
-        Imprimir ticket
-    </button>
-</div>
-            </form>
-
+            </aside>
         </div>
-    </div>
-</div>
-
-</span>
-
-
-
+    </main>
+    <%- include('partials/Aviso') %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

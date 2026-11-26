@@ -1,51 +1,142 @@
-
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inicio</title>
-  <link rel="stylesheet" href="/css/styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-    rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mesero | Entrega de pedidos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background:#f6f8fb; color:#283149; }
+        .cabecera { background:linear-gradient(115deg,#1c5670,#3e7d91); border-radius:20px; padding:25px 30px; color:#fff; }
+        .cabecera p { color:#d9f2f7; }
+        .estadistica { border:1px solid #e1e8ee; border-radius:15px; background:#fff; padding:18px; }
+        .estadistica .numero { font-size:2rem; font-weight:800; line-height:1.15; }
+        .entrega { border:1px solid #dce7ec; border-top:5px solid #239a87; border-radius:18px; overflow:hidden; box-shadow:0 6px 20px rgba(32,68,83,.06); }
+        .entrega .card-header { background:#fff; border-bottom:1px solid #edf2f5; padding:19px 22px; }
+        .entrega .card-body { padding:20px 22px; }
+        .pedido-numero { font-weight:800; font-size:1.35rem; color:#1b6275; }
+        .etiqueta { border-radius:30px; padding:.38rem .7rem; font-size:.8rem; font-weight:700; }
+        .etiqueta-listo { background:#dbf6eb; color:#146749; }
+        .etiqueta-entregado { background:#e9ebf2; color:#565f77; }
+        .producto { padding:9px 0; border-bottom:1px dashed #e3e8ee; }
+        .producto:last-child { border-bottom:0; }
+        .cambio { font-size:.86rem; color:#52627a; padding:2px 0; overflow-wrap:anywhere; }
+        .nota { background:#fff8e8; border:1px solid #f7dfad; border-radius:10px; padding:10px 12px; white-space:pre-wrap; overflow-wrap:anywhere; }
+        .btn-entregar { background:#1e846f; border:0; color:#fff; font-weight:700; border-radius:10px; }
+        .btn-entregar:hover { background:#176c5a; color:#fff; }
+        .historial { border:1px solid #e2e7ec; border-radius:14px; background:#fff; }
+        .vacio { background:#fff; border:2px dashed #dbe6e9; border-radius:16px; padding:40px 20px; text-align:center; color:#667c83; }
+        @media print { .no-imprimir { display:none!important; } body { background:#fff; } .entrega { break-inside:avoid; box-shadow:none; } }
+    </style>
+    <link rel="stylesheet" href="/css/Avisos.css">
 </head>
-
 <body>
+<%
+    const lista = Array.isArray(pedidos) ? pedidos : [];
+    const listos = lista.filter(p => p.estado === 'Listo para entregar');
+    const entregados = lista.filter(p => p.estado === 'Entregado');
+%>
+<main class="container-fluid px-3 px-lg-5 py-4">
+    <header class="cabecera d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="text-uppercase small fw-semibold mb-1">ZABAVA · Restaurante</div>
+            <h1 class="h2 fw-bold mb-1">Panel de meseros</h1>
+            <p class="mb-0">Pedidos listos para llevar a la mesa o entregar al cliente.</p>
+        </div>
+        <div class="d-flex gap-2 no-imprimir">
+            <a href="/ordenes/mesero" class="btn btn-light btn-sm">Actualizar</a>
+            <button class="btn btn-outline-light btn-sm" type="button" onclick="window.print()">Imprimir</button>
+              <li class="nav-item"><a class="nav-link text-warning" href="/logout"><i class="bi bi-box-arrow-right me-1"></i> Salir</a></li>
+        </div>
+    </header>
 
-  <div class="card">
+    <section class="row g-3 mb-4" aria-label="Resumen de entregas">
+        <div class="col-sm-6"><div class="estadistica"><div class="text-muted small">Listos para entregar</div><div class="numero text-success"><%= listos.length %></div></div></div>
+        <div class="col-sm-6"><div class="estadistica"><div class="text-muted small">Entregados hoy</div><div class="numero text-secondary"><%= entregados.length %></div></div></div>
+    </section>
 
-    <h1>¡Bienvenido!</h1>
+    <section aria-labelledby="listosTitulo">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+            <h2 id="listosTitulo" class="h5 fw-bold mb-0">Pedidos esperando entrega</h2>
+            <span class="etiqueta etiqueta-listo"><%= listos.length %> pendiente(s)</span>
+        </div>
+        <% if (!listos.length) { %>
+            <div class="vacio mb-4"><div class="h4 mb-2">✓ Todo entregado</div>No hay pedidos listos pendientes de entrega.</div>
+        <% } else { %>
+            <div class="row g-3 mb-4">
+                <% listos.forEach(p => { %>
+                    <div class="col-lg-6 col-xxl-4">
+                        <article class="card entrega h-100">
+                            <div class="card-header d-flex align-items-start justify-content-between gap-2">
+                                <div>
+                                    <div class="pedido-numero">Pedido #<%= p.id %></div>
+                                    <div class="small text-muted">Registrado: <%= p.fecha_texto || 'Sin fecha' %></div>
+                                </div>
+                                <span class="etiqueta etiqueta-listo">Listo</span>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3">
+                                    <div class="h5 fw-bold mb-1"><%= p.numero_mesa ? 'Mesa ' + p.numero_mesa : p.tipo_texto %></div>
+                                    <div><strong>Cliente:</strong> <%= p.cliente_nombre %></div>
+                                </div>
+                                <h3 class="h6 fw-bold">Verificar productos</h3>
+                                <% if (p.detalles.length === 0) { %><p class="small text-muted">No hay productos en el pedido.</p><% } %>
+                                <% p.detalles.forEach(d => { %>
+                                    <div class="producto">
+                                        <strong><%= d.cantidad %> × <%= d.nombre %></strong>
+                                        <% d.modificaciones.forEach(m => { %>
+                                            <% if (m.accion === 'QUITADO') { %>
+                                                <div class="cambio">− Sin <%= m.nombre %></div>
+                                            <% } else if (m.accion === 'EXTRA') { %>
+                                                <div class="cambio">+ <%= m.nombre %> extra × <%= m.porciones %></div>
+                                            <% } %>
+                                        <% }) %>
+                                        <% d.opciones.forEach(o => { %><div class="cambio">• <%= o.nombre %></div><% }) %>
+                                        <% if (d.nota_cocina) { %><div class="cambio"><strong>Nota:</strong> <%= d.nota_cocina %></div><% } %>
+                                    </div>
+                                <% }) %>
+                                <% if (p.nota) { %><div class="nota small mt-3"><strong>Observaciones:</strong> <%= p.nota %></div><% } %>
+                                <div class="mt-auto pt-3 no-imprimir">
+                                    <form action="/ordenes/mesero/<%= p.id %>/entregar" method="POST" onsubmit="return confirm('¿Ya entregaste el pedido #<%= p.id %> al cliente?')">
+                                        <button type="submit" class="btn btn-entregar w-100 py-2">✓ Confirmar entrega</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                <% }) %>
+            </div>
+        <% } %>
+    </section>
 
-    <p class="subtitle">
-      Qué bueno verte por aquí
-    </p>
-
-    <p class="user-info">
-      Hola,
-      <strong><%= user.nombre %></strong>
-
-      <span class="user-email">
-        <%= user.email %>
-      </span>
-      tu rol es:
-      <strong><%= user.rol %></strong>
-      Estamos en mantenimiento, gracias por tu espera. Pronto podrás acceder a todas las funciones del sistema.
-    </p>
-
-    <div class="hero-actions">
-
-      <a href="/logout">
-        <button class="btn-secondary">
-          Cerrar sesión
-        </button>
-      </a>
-
-    </div>
-
-  </div>
-
+    <section aria-labelledby="historialTitulo" class="mt-4">
+        <h2 id="historialTitulo" class="h5 fw-bold mb-3">Entregados hoy</h2>
+        <% if (!entregados.length) { %>
+            <p class="text-muted small">Todavía no hay entregas completadas hoy.</p>
+        <% } else { %>
+            <div class="historial overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th class="ps-3">Pedido</th><th>Ubicación</th><th>Cliente</th><th>Hora de entrega</th><th class="text-end pe-3">Estado</th></tr></thead>
+                        <tbody>
+                            <% entregados.forEach(p => { %>
+                                <tr>
+                                    <td class="ps-3 fw-semibold">#<%= p.id %></td>
+                                    <td><%= p.numero_mesa ? 'Mesa ' + p.numero_mesa : p.tipo_texto %></td>
+                                    <td><%= p.cliente_nombre %></td>
+                                    <td><%= p.entrega_texto || 'Sin hora' %></td>
+                                    <td class="text-end pe-3"><span class="etiqueta etiqueta-entregado">Entregado</span></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <% } %>
+    </section>
+    <p class="text-muted small mt-4 no-imprimir">Pulsa “Actualizar” para ver los nuevos pedidos que cocina haya terminado.</p>
+</main>
+<%- include('partials/Aviso') %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,21 +1,45 @@
-const mysql = require('mysql2')
-const dotenv = require('dotenv')
-const path = require('path')
+const mysql = require('mysql2');
+const dotenv = require('dotenv');
+const path = require('path');
 
-// Cargar .env asegurando la ruta exacta desde la ubicación de este archivo
-dotenv.config({ path: path.join(__dirname, '../env/.env') })
+// Cargar variables de entorno
+dotenv.config({
+  path: path.join(__dirname, '../env/.env')
+});
 
-// Si DB_HOST viene como 'db' o no existe, usamos 'mysql' que es el nombre en docker-compose
-const hostBD = (!process.env.DB_HOST || process.env.DB_HOST === 'db') ? 'mysql' : process.env.DB_HOST
+// Configuración del host para Docker
+const hostBD =
+  (!process.env.DB_HOST || process.env.DB_HOST === 'db')
+    ? 'mysql'
+    : process.env.DB_HOST;
 
-console.log('>>> Conectando a MySQL en el host:', hostBD)
+console.log('>>> Conectando a MySQL en:', hostBD);
 
+// Crear pool de conexiones
 const conexion = mysql.createPool({
   host: hostBD,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'contrasena',
-  database: process.env.DB_DATABASE || 'UG',
-  port: Number(process.env.DB_PORT) || 3306
-})
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  port: Number(process.env.DB_PORT || 3306),
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-module.exports = conexion
+// Comprobar conexión y base seleccionada
+conexion.query(
+  'SELECT DATABASE() AS base_actual',
+  (error, results) => {
+    if (error) {
+      console.error('Error de conexión a MySQL:', error.message);
+    } else {
+      console.log(
+        '>>> Base de datos conectada:',
+        results[0].base_actual
+      );
+    }
+  }
+);
+
+module.exports = conexion;

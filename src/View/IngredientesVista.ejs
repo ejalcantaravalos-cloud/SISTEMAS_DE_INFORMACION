@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingredientes | Sistema Integral</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/ingredientes.css">
+</head>
+<body>
+<%
+  const lista = Array.isArray(ingredientes) ? ingredientes : [];
+  const unidadesLista = Array.isArray(unidades) ? unidades : [];
+  const activos = lista.filter(item => Number(item.activo) === 1).length;
+  const mensajesOk = {
+    creado: 'Ingrediente registrado correctamente. Si agregaste existencias iniciales, también quedaron guardadas.',
+    entrada: 'Entrada de inventario y costo registrados correctamente.',
+    actualizado: 'Ingrediente actualizado correctamente.',
+    activado: 'Ingrediente activado.',
+    desactivado: 'Ingrediente desactivado. No se ofrecerá en nuevas recetas.'
+  };
+  const mensajesError = {
+    duplicado: 'Ya existe un item de inventario con ese nombre. Elige otro nombre o revisa el inventario.',
+    validacion: 'No se pudo guardar. Revisa nombre, cantidad, costo unitario, fechas y referencias existentes.',
+    servidor: 'Ocurrió un problema al guardar. Consulta la terminal del servidor.'
+  };
+%>
+<nav class="navbar navbar-expand-lg navbar-dark navbar-panel py-3">
+  <div class="container-fluid admin-container px-3 px-lg-4">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/admin">
+      <span class="bg-white bg-opacity-10 rounded-3 px-2 py-1"><i class="bi bi-grid-1x2-fill"></i></span>
+      Sistema Integral <span class="d-none d-sm-inline text-white-50 fw-normal fs-6">/ Admin</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navAdmin" aria-controls="navAdmin" aria-expanded="false" aria-label="Mostrar navegación"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse mt-3 mt-lg-0" id="navAdmin">
+      <ul class="navbar-nav ms-lg-auto align-items-lg-center gap-lg-1">
+        <li class="nav-item"><a class="nav-link" href="/admin"><i class="bi bi-people me-1"></i> Usuarios</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/menu/productos"><i class="bi bi-egg-fried me-1"></i> Platillos</a></li>
+        <li class="nav-item"><a class="nav-link active" aria-current="page" href="/admin/ingredientes"><i class="bi bi-basket2 me-1"></i> Ingredientes</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/menu/categorias"><i class="bi bi-journal-text me-1"></i> Menús</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/inflables"><i class="bi bi-balloon me-1"></i> Inflables</a></li>
+        <li class="nav-item"><a class="nav-link text-warning" href="/logout"><i class="bi bi-box-arrow-right me-1"></i> Salir</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<main class="container-fluid admin-container px-3 px-lg-4 py-4 py-lg-5">
+  <div class="d-flex flex-column flex-md-row align-items-md-start justify-content-between gap-3 mb-4">
+    <div>
+      <div class="eyebrow mb-2">Catálogo de cocina</div>
+      <h1 class="fw-bold mb-1">Ingredientes</h1>
+      <p class="text-secondary mb-0">Registra ingredientes, existencias disponibles y costos de entrada para preparar tus platillos.</p>
+    </div>
+    <a href="/admin" class="btn btn-outline-secondary rounded-3"><i class="bi bi-arrow-left me-1"></i> Volver al panel</a>
+  </div>
+
+  <% if (mensajesOk[ok]) { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert"><i class="bi bi-check-circle me-2"></i><%= mensajesOk[ok] %><button class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button></div>
+  <% } %>
+  <% if (mensajesError[error]) { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert"><i class="bi bi-exclamation-circle me-2"></i><%= mensajesError[error] %><button class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button></div>
+  <% } %>
+  <div id="avisoEntrada" class="alert alert-success alert-dismissible d-none" role="alert" aria-live="polite">
+    <i class="bi bi-check-circle me-2" aria-hidden="true"></i>
+    <span id="avisoEntradaTexto"></span>
+    <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+  </div>
+
+  <div class="row g-4 align-items-start">
+    <section class="col-lg-4">
+      <div class="card p-4">
+        <div class="d-flex align-items-center gap-2 mb-2"><div class="icono-ingrediente"><i class="bi bi-plus-lg"></i></div><h2 class="h5 fw-bold mb-0">Nuevo ingrediente</h2></div>
+        <form action="/admin/ingredientes" method="POST">
+          <div class="mb-3">
+            <label for="nuevoNombre" class="form-label fw-semibold">Nombre</label>
+            <input id="nuevoNombre" class="form-control" type="text" name="nombre" maxlength="120" placeholder="Ej. Queso manchego" required>
+          </div>
+          <div class="mb-3">
+            <label for="nuevaUnidad" class="form-label fw-semibold">Unidad de medida</label>
+            <select id="nuevaUnidad" name="unidad_medida_id" class="form-select" required>
+              <option value="">Selecciona una unidad</option>
+              <% unidadesLista.forEach(unidad => { %>
+                <option value="<%= unidad.id %>"><%= unidad.nombre %> (<%= unidad.codigo %>)</option>
+              <% }); %>
+            </select>
+            <div class="form-text">La unidad es cómo se mide (g, ml o piezas). La cantidad de cada receta se definirá al crear el platillo.</div>
+          </div>
+          <div class="form-check form-switch mb-4">
+            <input class="form-check-input" type="checkbox" name="maneja_caducidad" value="1" id="nuevaCaducidad" checked>
+            <label class="form-check-label" for="nuevaCaducidad">Maneja fecha de caducidad</label>
+          </div>
+          <div class="border-top pt-3 mb-3">
+            <h3 class="h6 fw-bold mb-1"><i class="bi bi-box-seam me-1"></i> Existencias iniciales (opcional)</h3>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="form-label small fw-semibold" for="nuevaCantidad">Cantidad</label>
+                <input id="nuevaCantidad" class="form-control" type="number" name="cantidad" min="0.001" step="0.001" placeholder="Ej. 2000">
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-semibold" for="nuevoCosto">Costo por unidad ($)</label>
+                <input id="nuevoCosto" class="form-control" type="number" name="costo_unitario" min="0" step="0.01" placeholder="Ej. 0.15">
+              </div>
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="form-label small fw-semibold" for="nuevoLote">Código del lote</label>
+                <input id="nuevoLote" class="form-control" type="text" name="codigo_lote" maxlength="80" placeholder="Opcional">
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-semibold" for="nuevaFecha">Fecha de caducidad</label>
+                <input id="nuevaFecha" class="form-control" type="date" name="fecha_caducidad">
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-brand w-100 rounded-3"><i class="bi bi-plus-circle me-1"></i> Guardar ingrediente</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="col-lg-8">
+      <div class="card p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h2 class="h5 fw-bold mb-1">Ingredientes registrados</h2>
+            <span class="stat small"><%= lista.length %> en total · <%= activos %> activos</span>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <input type="search" class="form-control" id="buscarIngrediente" placeholder="Buscar por nombre..." aria-label="Buscar ingrediente" style="max-width:205px">
+            <select id="filtrarEstado" class="form-select" aria-label="Filtrar por estado" style="max-width:150px">
+              <option value="todos">Todos</option>
+              <option value="1">Activos</option>
+              <option value="0">Inactivos</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead><tr><th>Ingrediente</th><th>Unidad</th><th>Disponible</th><th>Último costo por unidad</th><th>Caducidad</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+            <tbody id="tablaIngredientes">
+              <% lista.forEach(item => { %>
+                <tr data-ingrediente-id="<%= item.id %>" data-nombre="<%= item.nombre.toLowerCase() %>" data-estado="<%= Number(item.activo) %>">
+                  <td>
+                    <div class="d-flex align-items-center gap-2"><div class="icono-ingrediente flex-shrink-0"><i class="bi bi-basket2"></i></div>
+                      <div><div class="fw-semibold"><%= item.nombre %></div><div class="small text-secondary">ID #<%= item.id %></div></div>
+                    </div>
+                  </td>
+                  <td><%= item.unidad_nombre %> <span class="small text-secondary">(<%= item.unidad_codigo %>)</span></td>
+                  <td data-col="disponible" class="fw-semibold"><%= Number(item.cantidad_disponible || 0).toLocaleString('es-MX', { maximumFractionDigits: 3 }) %> <span class="fw-normal small text-secondary"><%= item.unidad_codigo %></span></td>
+                  <td data-col="costo"><%= item.ultimo_costo_unitario != null ? '$' + Number(item.ultimo_costo_unitario).toFixed(2) : '—' %></td>
+                  <td><%= Number(item.maneja_caducidad) === 1 ? 'Sí' : 'No' %></td>
+                  <td>
+                    <% if (Number(item.activo) === 1) { %>
+                      <span class="badge rounded-pill badge-activo">Activo</span>
+                    <% } else { %>
+                      <span class="badge rounded-pill badge-inactivo">Inactivo</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="d-flex justify-content-end flex-wrap gap-2">
+                      <% if (Number(item.activo) === 1) { %>
+                        <button type="button" class="btn btn-sm btn-brand btn-entrada"
+                          data-bs-toggle="modal" data-bs-target="#modalEntrada"
+                          data-id="<%= item.id %>" data-nombre="<%= item.nombre %>"
+                          data-unidad="<%= item.unidad_codigo %>">
+                          <i class="bi bi-box-arrow-in-down me-1"></i> Entrada
+                        </button>
+                      <% } %>
+                      <button type="button" class="btn btn-sm btn-outline-secondary btn-editar"
+                        data-bs-toggle="modal" data-bs-target="#modalEditar"
+                        data-id="<%= item.id %>"
+                        data-nombre="<%= item.nombre %>"
+                        data-unidad="<%= item.unidad_medida_id %>"
+                        data-caducidad="<%= Number(item.maneja_caducidad) %>">
+                        <i class="bi bi-pencil-square me-1"></i> Editar
+                      </button>
+                      <form method="POST" action="/admin/ingredientes/<%= item.id %>/estado" class="m-0">
+                        <input type="hidden" name="activo" value="<%= Number(item.activo) === 1 ? 0 : 1 %>">
+                        <button class="btn btn-sm <%= Number(item.activo) === 1 ? 'btn-outline-danger' : 'btn-outline-success' %>" type="submit"
+                          data-confirmar="<%= Number(item.activo) === 1 ? '¿Desactivar este ingrediente?' : '¿Activar este ingrediente?' %>"
+                          onclick="return confirm(this.dataset.confirmar)">
+                          <i class="bi bi-<%= Number(item.activo) === 1 ? 'pause-circle' : 'check-circle' %> me-1"></i>
+                          <%= Number(item.activo) === 1 ? 'Desactivar' : 'Activar' %>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <p id="sinResultados" class="text-center text-secondary small my-4 d-none">No hay ingredientes que coincidan con el filtro.</p>
+        <% if (lista.length === 0) { %>
+          <div class="text-center text-secondary py-5"><i class="bi bi-basket2 fs-1 d-block mb-2"></i>Todavía no hay ingredientes registrados.</div>
+        <% } %>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4">
+      <div class="modal-header"><h2 class="h5 modal-title fw-bold" id="modalTitulo">Editar ingrediente</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+      <form method="POST" id="formEditar">
+        <div class="modal-body">
+          <div class="mb-3"><label for="editarNombre" class="form-label fw-semibold">Nombre</label><input type="text" id="editarNombre" name="nombre" class="form-control" maxlength="120" required></div>
+          <div class="mb-3"><label for="editarUnidad" class="form-label fw-semibold">Unidad de medida</label><select id="editarUnidad" name="unidad_medida_id" class="form-select" required>
+            <% unidadesLista.forEach(unidad => { %>
+              <option value="<%= unidad.id %>"><%= unidad.nombre %> (<%= unidad.codigo %>)</option>
+            <% }); %>
+          </select></div>
+          <div class="form-check form-switch"><input type="checkbox" class="form-check-input" id="editarCaducidad" name="maneja_caducidad" value="1"><label for="editarCaducidad" class="form-check-label">Maneja fecha de caducidad</label></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-brand" type="submit">Guardar cambios</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEntrada" tabindex="-1" aria-labelledby="entradaTitulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4">
+      <div class="modal-header">
+        <h2 class="h5 modal-title fw-bold" id="entradaTitulo">Registrar entrada de inventario</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form method="POST" id="formEntrada">
+        <div class="modal-body">
+          <div id="errorEntrada" class="alert alert-danger d-none" role="alert" aria-live="assertive"></div>
+          <p class="text-secondary small">Ingrediente: <strong id="entradaNombre"></strong></p>
+          <div class="row g-3">
+            <div class="col-6">
+              <label for="entradaCantidad" class="form-label fw-semibold">Cantidad (<span id="entradaUnidad"></span>)</label>
+              <input type="number" class="form-control" id="entradaCantidad" name="cantidad" min="0.001" step="0.001" required placeholder="Ej. 24">
+            </div>
+            <div class="col-6">
+              <label for="entradaCosto" class="form-label fw-semibold">Costo por unidad ($)</label>
+              <input type="number" class="form-control" id="entradaCosto" name="costo_unitario" min="0" step="0.01" required placeholder="Ej. 5.00">
+            </div>
+            <div class="col-6">
+              <label for="entradaLote" class="form-label fw-semibold">Código de lote</label>
+              <input type="text" class="form-control" id="entradaLote" name="codigo_lote" maxlength="80" placeholder="Opcional">
+            </div>
+            <div class="col-6">
+              <label for="entradaFecha" class="form-label fw-semibold">Caducidad</label>
+              <input type="date" class="form-control" id="entradaFecha" name="fecha_caducidad">
+            </div>
+          </div>
+          <div class="mt-2 fw-semibold" id="entradaTotal">Total aproximado: —</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-brand" id="btnGuardarEntrada">Registrar entrada</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/Ingredientes.js"></script>
+</body>
+</html>

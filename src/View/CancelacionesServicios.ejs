@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= titulo %> | ZABAVA</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/GestionRentas.css">
+    <link rel="stylesheet" href="/css/Avisos.css">
+
+    <style>
+        body { background: #f8f6fc; color: #303046; }
+        .panel-cancelaciones {
+            background: white;
+            border: 1px solid #e7ddf5;
+            border-radius: 18px;
+            padding: 24px;
+        }
+        .motivo-historico { white-space: pre-line; overflow-wrap: anywhere; }
+        .modal-header { background: #9062db; color: white; }
+        .opcion-motivo {
+            padding: 10px 12px 10px 36px;
+            border: 1px solid #e7ddf5;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .form-check-input:checked { background-color: #9062db; border-color: #9062db; }
+        .panel-cancelaciones .nav-link.active { background: #9062db; color: white; }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVEGACIÓN -->
+
+    <nav class="navbar navbar-dark" style="background:#9062db;">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="<%= regreso %>"> ZABAVA</a>
+            <a class="btn btn-outline-light btn-sm" href="<%= regreso %>">
+                <i class="bi bi-arrow-left me-1"></i> Regresar al menú
+            </a>
+        </div>
+    </nav>
+
+    <main class="container py-5">
+        <header class="mb-4">
+            <h1 class="fw-bold"><i class="bi bi-calendar-x me-2" style="color:#9062db;"></i><%= titulo %></h1>
+            <p class="text-muted"><%= area === 'restaurante' ? 'Registra el motivo de una cancelación y consulta su historial.' : 'Cancela o reagenda una reservación y consulta su historial.' %></p>
+        </header>
+
+        <% if (area === 'eventos') { %>
+            <p class="small text-muted">Cancelar un evento cancela también su inflable y los pedidos vinculados a la misma operación.</p>
+        <% } %>
+
+        <div class="panel-cancelaciones">
+
+            <!-- BUSCADOR Y PESTAÑAS -->
+
+            <input id="buscar" type="search" class="form-control mb-4"
+                placeholder="Buscar por ID, cliente, servicio o motivo..." aria-label="Buscar servicios">
+
+            <div class="nav nav-pills mb-4" role="group" aria-label="Filtrar servicios">
+                <button type="button" class="nav-link active" data-filtro="pendientes"><%= area === 'restaurante' ? 'Por cancelar' : 'Reservaciones disponibles' %></button>
+                <button type="button" class="nav-link" data-filtro="historial">Historial de cancelaciones</button>
+                <% if (area !== 'restaurante') { %>
+                    <button type="button" class="nav-link" data-filtro="reagendaciones">Historial de reagendaciones</button>
+                <% } %>
+            </div>
+
+            <% const moneda = n => Number(n || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }); %>
+            <% const fecha = v => v ? (v instanceof Date ? v.toLocaleString('es-MX') : String(v)) : '—'; %>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Servicio / cliente</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Pago aplicado al servicio</th>
+                            <th>Acción / motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registros">
+                        <% registros.filter(r => r.cancelable || r.cancelado).forEach(r => { %>
+                            <tr data-grupo="<%= r.cancelado ? 'historial' : 'pendientes' %>">
+                                <td>#<%= r.id %></td>
+                                <td>
+                                    <strong><%= r.servicio %></strong>
+                                    <div class="small text-muted"><%= r.cliente %></div>
+                                </td>
+                                <td><%= fecha(r.fecha) %></td>
+                                <td><span class="badge <%= r.cancelado ? 'text-bg-secondary' : 'text-bg-light' %>"><%= r.estado %></span></td>
+                                <td><%= moneda(r.pagado) %></td>
+                                <td>
+                                    <% if (r.cancelable && !r.cancelado) { %>
+                                        <button type="button" class="btn btn-outline-danger btn-sm abrir-cancelacion"
+                                            data-id="<%= r.id %>" data-nombre="<%= r.servicio %>"
+                                            data-estado="<%= r.estado %>" data-reagendable="<%= r.reagendable ? '1' : '0' %>"
+                                            data-inicio="<%= r.inicio_original || '' %>" data-fin="<%= r.fin_original || '' %>" data-bs-toggle="modal" data-bs-target="#modalCancelar">
+                                            <%= r.reagendable ? 'Cancelar / Reagendar' : 'Cancelar' %>
+                                        </button>
+                                    <% } else { %>
+                                        <div class="motivo-historico small"><%= r.motivo || 'Sin motivo histórico registrado.' %></div>
+                                        <div class="small text-muted"><%= fecha(r.fecha_cancelacion) %> · <%= r.empleado || '—' %></div>
+                                        <% if (Number(r.tiene_solicitud)) { %>
+                                            <span class="badge text-bg-warning mt-2">Solicitud de devolución registrada</span>
+                                        <% } %>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                        <% historialReagendaciones.forEach(h => { %>
+                            <tr data-grupo="reagendaciones" hidden>
+                                <td>#<%= h.reserva_id %></td>
+                                <td><strong><%= h.servicio %></strong><div class="small text-muted"><%= h.cliente %></div></td>
+                                <td class="small">
+                                    <div>Anterior: <%= h.inicio_anterior %> — <%= h.fin_anterior %></div>
+                                    <div>Nuevo: <%= h.inicio_nuevo %> — <%= h.fin_nuevo %></div>
+                                </td>
+                                <td><span class="badge text-bg-info">Reagendada</span></td>
+                                <td class="small">
+                                    <% if (!h.responsable) { %>
+                                        <span class="text-muted">Reagendación anterior: sin ajuste registrado</span>
+                                    <% } else if (h.responsable === 'negocio') { %>
+                                        <strong class="text-success">Sin penalización</strong>
+                                        <div>Pago conservado: <%= moneda(h.importe_conservado) %></div>
+                                    <% } else { %>
+                                        <strong class="text-danger">Apartado retenido: <%= moneda(h.importe_retenido) %></strong>
+                                        <div>Pago conservado: <%= moneda(h.importe_conservado) %></div>
+                                        <% if (Number(h.anticipo_pendiente) > 0) { %>
+                                            <div class="text-danger">Nuevo anticipo pendiente: <%= moneda(h.anticipo_pendiente) %></div>
+                                        <% } %>
+                                        <div>Saldo pendiente: <%= moneda(h.saldo_pendiente) %></div>
+                                        <div class="text-muted">Importes al reagendar, no saldo actual.</div>
+                                    <% } %>
+                                    <% if (Number(h.anticipo_actual) > 0) { %>
+                                        <details class="mt-2">
+                                            <summary class="text-primary fw-bold">Cobrar nuevo anticipo: <%= moneda(h.anticipo_actual) %></summary>
+                                            <form class="mt-2" method="POST" action="<%= ruta %>/reagendaciones/<%= h.id %>/anticipo">
+                                                <input type="hidden" name="importe_esperado" value="<%= Number(h.anticipo_actual).toFixed(2) %>">
+                                                <select name="metodo_pago" class="form-select form-select-sm mb-2" aria-label="Método de pago" required>
+                                                    <option value="EFECTIVO">Efectivo</option>
+                                                    <option value="TARJETA">Tarjeta</option>
+                                                    <option value="TRANSFERENCIA">Transferencia</option>
+                                                </select>
+                                                <input name="referencia" class="form-control form-control-sm mb-2" placeholder="Referencia (opcional)" maxlength="120">
+                                                <label class="form-check mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="confirmar_pago" value="1" required>
+                                                    <span class="form-check-label">Confirmo que recibí el importe.</span>
+                                                </label>
+                                                <button type="submit" class="btn btn-success btn-sm">Registrar pago</button>
+                                            </form>
+                                        </details>
+                                    <% } else if (h.responsable && Number(h.es_ultima) && Number(h.tiene_reagendacion_cliente) && h.estado_actual === 'Reservada') { %>
+                                        <div class="text-success mt-2">Apartado actual cubierto</div>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <div class="motivo-historico small"><%= h.motivo %></div>
+                                    <div class="small text-muted"><%= fecha(h.fecha) %> · <%= h.empleado %></div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <p id="sinResultados" class="text-center text-muted py-3" hidden>No hay registros para mostrar.</p>
+        </div>
+    </main>
+
+    <!-- MODAL DE CANCELACIÓN -->
+
+    <div class="modal fade" id="modalCancelar" tabindex="-1" aria-labelledby="tituloModal" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+            <form id="formCancelar" method="POST" class="modal-content">
+                <div class="modal-header">
+                    <h2 id="tituloModal" class="modal-title fs-5">Cancelar servicio</h2>
+                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p id="servicioElegido" class="fw-bold"></p>
+                    <fieldset class="mb-4">
+                        <legend id="preguntaResponsable" class="fs-6 fw-bold">¿Quién ocasionó la cancelación?</legend>
+                        <div class="form-check mb-2">
+                            <input type="radio" class="form-check-input" id="responsableCliente" name="responsable" value="cliente" required>
+                            <label class="form-check-label" for="responsableCliente">Por parte del cliente</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" id="responsableNegocio" name="responsable" value="negocio" required>
+                            <label class="form-check-label" for="responsableNegocio">Por parte de ZABAVA</label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset id="motivosCliente" class="mb-3" hidden disabled>
+                        <legend class="fs-6 fw-bold">Motivos del cliente</legend>
+                        <% motivosCliente.forEach((m, i) => { %>
+                            <div class="form-check opcion-motivo">
+                                <input type="checkbox" name="motivos[]" value="<%= m %>" class="form-check-input" id="mc<%= i %>">
+                                <label class="form-check-label" for="mc<%= i %>"><%= m %></label>
+                            </div>
+                        <% }); %>
+                    </fieldset>
+
+                    <fieldset id="motivosNegocio" class="mb-3" hidden disabled>
+                        <legend class="fs-6 fw-bold">Motivos del negocio</legend>
+                        <% motivosNegocio.forEach((m, i) => { %>
+                            <div class="form-check opcion-motivo">
+                                <input type="checkbox" name="motivos[]" value="<%= m %>" class="form-check-input" id="mn<%= i %>">
+                                <label class="form-check-label" for="mn<%= i %>"><%= m %></label>
+                            </div>
+                        <% }); %>
+                    </fieldset>
+
+                    <label class="form-label fw-bold" for="explicacion">Explicación de lo ocurrido</label>
+                    <textarea class="form-control mb-3" id="explicacion" name="explicacion" rows="3" maxlength="1500"></textarea>
+                    <% if (area !== 'restaurante') { %>
+                        <div id="opcionReagendar" class="border rounded p-3 mb-3" hidden>
+                            <div class="form-check">
+                                <input type="checkbox" id="reagendar" name="reagendar" value="1" class="form-check-input" disabled>
+                                <label class="form-check-label fw-bold" for="reagendar">¿Se va a reagendar la reservación?</label>
+                            </div>
+                            <fieldset id="nuevaFecha" class="mt-3" hidden disabled>
+                                <p id="horarioOriginal" class="small text-muted"></p>
+                                <label for="fechaReagendar" class="form-label">Nueva fecha del evento</label>
+                                <input type="date" id="fechaReagendar" name="nueva_fecha" class="form-control mb-2" required>
+                                <% if (area === 'eventos') { %>
+                                    <label for="horaReagendar" class="form-label">Nueva hora de inicio</label>
+                                    <input type="time" id="horaReagendar" name="nueva_hora" class="form-control mb-2" required>
+                                    <p class="small text-muted mb-0">Se conserva la duración, el salón, el inflable y los servicios contratados.</p>
+                                <% } else { %>
+                                    <p class="small text-muted mb-0">Se conserva el inflable y el periodo de instalación acordado (incluido el día anterior, si aplica).</p>
+                                <% } %>
+                                <input type="hidden" id="inicioOriginal" name="inicio_original">
+                                <input type="hidden" id="finOriginal" name="fin_original">
+                            </fieldset>
+                        </div>
+                    <% } %>
+                    <p id="politica" class="alert alert-light border small">Selecciona al responsable.</p>
+                    <% if (area !== 'restaurante') { %>
+                        <p class="small text-muted">Si un recurso está dañado, desactívalo también en el catálogo. Cancelar libera el horario, no declara el equipo fuera de servicio.</p>
+                    <% } %>
+                    <div class="form-check">
+                        <input type="checkbox" id="confirmar" name="confirmar" value="1" class="form-check-input" required>
+                        <label id="textoConfirmar" for="confirmar" class="form-check-label">Confirmo la cancelación definitiva del servicio.</label>
+                    </div>
+                    <p id="errorFormulario" class="text-danger small mt-2" role="alert" hidden></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Regresar</button>
+                    <button id="botonConfirmar" type="submit" class="btn btn-danger">Confirmar cancelación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <%- include('partials/Aviso') %>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ========================================
+        // BÚSQUEDA E HISTORIAL
+        // ========================================
+
+        const buscar = document.getElementById('buscar');
+        let filtro = 'pendientes';
+
+        function filtrar() {
+            const termino = buscar.value.toLowerCase().trim();
+            let visibles = 0;
+
+            document.querySelectorAll('#registros tr').forEach(fila => {
+                fila.hidden = fila.dataset.grupo !== filtro ||
+                    !fila.textContent.toLowerCase().includes(termino);
+                if (!fila.hidden) visibles++;
+            });
+
+            document.getElementById('sinResultados').hidden = visibles > 0;
+        }
+
+        buscar.addEventListener('input', filtrar);
+        document.querySelectorAll('[data-filtro]').forEach(boton => {
+            boton.addEventListener('click', () => {
+                filtro = boton.dataset.filtro;
+                document.querySelectorAll('[data-filtro]').forEach(b => b.classList.toggle('active', b === boton));
+                filtrar();
+            });
+        });
+        const avisoActual = new URLSearchParams(window.location.search).get('aviso');
+        if (['reagendado', 'reagendado_cliente', 'anticipo_reagendado'].includes(avisoActual)) {
+            document.querySelector('[data-filtro="reagendaciones"]')?.click();
+        } else {
+            filtrar();
+        }
+
+        // ========================================
+        // FORMULARIO DE CANCELACIÓN
+        // ========================================
+
+        const formulario = document.getElementById('formCancelar');
+        const cliente = document.getElementById('responsableCliente');
+        const negocio = document.getElementById('responsableNegocio');
+        const motivosCliente = document.getElementById('motivosCliente');
+        const motivosNegocio = document.getElementById('motivosNegocio');
+        const explicacion = document.getElementById('explicacion');
+        const politica = document.getElementById('politica');
+        const error = document.getElementById('errorFormulario');
+        const ruta = '<%= ruta %>';
+        const opcionReagendar = document.getElementById('opcionReagendar');
+        const reagendar = document.getElementById('reagendar');
+        const nuevaFecha = document.getElementById('nuevaFecha');
+        const confirmar = document.getElementById('confirmar');
+        const botonConfirmar = document.getElementById('botonConfirmar');
+
+        function actualizarAccion() {
+            const mover = Boolean(reagendar && !reagendar.disabled && reagendar.checked);
+            if (nuevaFecha) nuevaFecha.hidden = nuevaFecha.disabled = !mover;
+            document.getElementById('tituloModal').textContent = mover ? 'Reagendar reservación' : 'Cancelar servicio';
+            document.getElementById('preguntaResponsable').textContent = mover
+                ? '¿Quién solicitó u ocasionó la reagendación?' : '¿Quién ocasionó la cancelación?';
+            document.getElementById('textoConfirmar').textContent = mover
+                ? 'Confirmo el cambio de fecha de la reservación.' : 'Confirmo la cancelación definitiva del servicio.';
+            botonConfirmar.textContent = mover ? 'Confirmar reagendación' : 'Confirmar cancelación';
+            botonConfirmar.classList.toggle('btn-danger', !mover);
+            botonConfirmar.classList.toggle('btn-primary', mover);
+            return mover;
+        }
+
+        function actualizarMotivos() {
+            motivosCliente.hidden = motivosCliente.disabled = !cliente.checked;
+            motivosNegocio.hidden = motivosNegocio.disabled = !negocio.checked;
+
+            const activos = formulario.querySelectorAll('input[name="motivos[]"]:checked');
+            explicacion.required = negocio.checked || Array.from(activos).some(c =>
+                !c.closest('fieldset').disabled && c.value === 'Otro motivo');
+
+            const mover = actualizarAccion();
+            politica.textContent = mover
+                ? cliente.checked
+                    ? (ruta.includes('/eventos')
+                        ? 'Se retendrá hasta el 50 % del precio contratado, únicamente de los pagos recibidos. Los abonos restantes y el depósito de limpieza se conservan. No se registra un cobro automático.'
+                        : 'Se retendrá hasta el importe del apartado original, únicamente de los pagos recibidos. Los abonos restantes se conservan. No se registra un cobro automático.')
+                    : negocio.checked
+                    ? 'Se conservarán los pagos y precios acordados, sin penalización. Se verificará la disponibilidad.'
+                    : 'Selecciona al responsable para conocer la política de reagendación.'
+                : negocio.checked
+                ? 'Si hay pagos aplicados, se registrará una solicitud de devolución. No se entregará dinero ahora.'
+                : cliente.checked ? 'Según la regla del negocio, la cancelación no genera una devolución automática.'
+                    : 'Selecciona al responsable.';
+            error.hidden = true;
+        }
+
+        document.querySelectorAll('.abrir-cancelacion').forEach(boton => {
+            boton.addEventListener('click', () => {
+                formulario.reset();
+                formulario.action = ruta + '/cancelar/' + encodeURIComponent(boton.dataset.id);
+                document.getElementById('servicioElegido').textContent = boton.dataset.nombre;
+                if (reagendar) {
+                    const permitido = boton.dataset.reagendable === '1';
+                    opcionReagendar.hidden = reagendar.disabled = !permitido;
+                    document.getElementById('inicioOriginal').value = boton.dataset.inicio;
+                    document.getElementById('finOriginal').value = boton.dataset.fin;
+                    document.getElementById('horarioOriginal').textContent = 'Horario actual: ' + boton.dataset.inicio + ' — ' + boton.dataset.fin;
+                    const hora = document.getElementById('horaReagendar');
+                    if (hora) hora.value = boton.dataset.inicio.slice(11, 16);
+                }
+                cliente.disabled = boton.dataset.estado === 'Entregado';
+                if (cliente.disabled) negocio.checked = true;
+                actualizarMotivos();
+            });
+        });
+
+        // Desde la comanda, enfocar la fila correspondiente sin confirmar nada.
+        const pedidoElegido = new URLSearchParams(window.location.search).get('pedido');
+        if (pedidoElegido && ruta === '/restaurante/cancelaciones') {
+            const boton = [...document.querySelectorAll('.abrir-cancelacion')]
+                .find(b => b.dataset.id === pedidoElegido);
+            if (boton) {
+                boton.scrollIntoView({ block: 'center' });
+                boton.click();
+            }
+        }
+
+        if (reagendar) reagendar.addEventListener('change', () => { confirmar.checked = false; });
+        formulario.addEventListener('change', actualizarMotivos);
+        formulario.addEventListener('submit', evento => {
+            const marcados = Array.from(formulario.querySelectorAll('input[name="motivos[]"]:checked'))
+                .filter(c => !c.closest('fieldset').disabled);
+
+            if (!marcados.length || (explicacion.required && !explicacion.value.trim())) {
+                evento.preventDefault();
+                error.textContent = 'Selecciona al menos un motivo y escribe la explicación cuando corresponda.';
+                error.hidden = false;
+            }
+        });
+    </script>
+</body>
+</html>

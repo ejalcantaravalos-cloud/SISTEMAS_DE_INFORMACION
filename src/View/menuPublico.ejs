@@ -3,69 +3,141 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Menú del Restaurante</title>
-  <link rel="stylesheet" href="/styles.css">
+  <meta name="description" content="Conoce los menús y platillos disponibles en nuestro restaurante.">
+  <title>Menú del restaurante | Diversion y Eventos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; color: #334155; margin: 0; padding: 0; }
-    .public-container { max-width: 1000px; margin: 40px auto; padding: 20px; }
-    .public-header { text-align: center; margin-bottom: 40px; }
-    .public-header h1 { font-size: 2.5rem; color: #1e293b; margin-bottom: 10px; }
-    .public-header p { color: #64748b; font-size: 1.1rem; }
-    
-    .categoria-section { margin-bottom: 40px; }
-    .categoria-title { font-size: 1.5rem; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 20px; }
-    
-    .productos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .producto-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; position: relative; }
-    .producto-card h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: #1e293b; }
-    .precio { font-size: 1.25rem; font-weight: bold; color: #16a34a; margin: 0; }
-    .badge-especial { position: absolute; top: 15px; right: 15px; background: #fef08a; color: #854d0e; font-size: 0.75rem; padding: 4px 8px; border-radius: 9999px; font-weight: bold; }
-    
-    .volver-home { display: inline-block; margin-bottom: 20px; color: #2563eb; text-decoration: none; font-weight: 500; }
-    .volver-home:hover { text-decoration: underline; }
+    :root {
+      --morado: #563576;
+      --morado-oscuro: #34214a;
+      --morado-suave: #efe8f5;
+      --fondo: #faf9fc;
+      --texto: #292335;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--fondo); color: var(--texto); }
+    .cabecera {
+      background: linear-gradient(125deg, #34214a 0%, #63418a 100%);
+      color: white;
+    }
+    .cabecera h1 { letter-spacing: -.03em; }
+    .menu-navegacion {
+      display: flex;
+      gap: .65rem;
+      overflow-x: auto;
+      padding: .9rem 0 1.15rem;
+      scrollbar-width: thin;
+    }
+    .enlace-menu {
+      color: var(--morado);
+      background: white;
+      text-decoration: none;
+      border: 1px solid #e0d6ec;
+      border-radius: 999px;
+      padding: .65rem 1.15rem;
+      white-space: nowrap;
+      font-weight: 600;
+      transition: background .15s, color .15s;
+    }
+    .enlace-menu:hover, .enlace-menu:focus {
+      color: white;
+      background: var(--morado);
+      border-color: var(--morado);
+    }
+    .seccion-menu { scroll-margin-top: 1rem; padding-top: 2.5rem; }
+    .titulo-menu { color: var(--morado-oscuro); font-weight: 750; }
+    .descripcion-menu { max-width: 65ch; }
+    .contador { color: var(--morado); background: var(--morado-suave); border-radius: 999px; font-size: .8rem; padding: .35rem .75rem; }
+    .platillo {
+      border: 1px solid #e7e1ec;
+      border-radius: 1rem;
+      overflow: hidden;
+      height: 100%;
+      box-shadow: 0 5px 16px rgba(41, 29, 54, .04);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .platillo:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(41, 29, 54, .09); }
+    .foto { height: 190px; width: 100%; object-fit: cover; background: var(--morado-suave); }
+    .etiqueta-categoria { color: var(--morado); background: var(--morado-suave); padding: .3rem .6rem; border-radius: .4rem; font-size: .78rem; }
+    .precio { color: var(--morado); font-size: 1.15rem; font-weight: 750; }
+    .nombre-platillo { color: var(--morado-oscuro); }
+    .descripcion-platillo { min-height: 2.8em; }
+    .favorito { color: #855800; background: #fff0c3; border-radius: .4rem; font-size: .75rem; padding: .3rem .5rem; }
+    .pie { border-top: 1px solid #e7e1ec; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .platillo, .enlace-menu { transition: none; } }
   </style>
 </head>
 <body>
-  <div class="public-container">
-    <a href="/" class="volver-home">← Volver al inicio</a>
-    
-    <div class="public-header">
-      <h1> Nuestro Menú y Platillos</h1>
-      <p>Explora nuestros deliciosos platillos y menús especiales de temporada.</p>
+  <header class="cabecera py-4 py-md-5">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div>
+          <p class="text-uppercase small fw-semibold mb-2" style="letter-spacing:.13em;opacity:.85">Diversion y Eventos · Restaurante</p>
+          <h1 class="display-6 fw-bold mb-2">Nuestros menús</h1>
+          <p class="mb-0 opacity-75">Descubre los platillos que tenemos para ti.</p>
+        </div>
+        <a href="/" class="btn btn-outline-light btn-sm">← Volver al inicio</a>
+      </div>
     </div>
+  </header>
 
-    <% if (categorias.length === 0) { %>
-      <p style="text-align: center; color: #64748b;">No hay menús disponibles en este momento.</p>
+  <main class="container pb-5">
+    <% if (!menus || menus.length === 0) { %>
+      <div class="alert alert-info mt-4" role="status">
+        Por el momento no hay platillos publicados en menús activos y vigentes.
+      </div>
     <% } else { %>
-      <% categorias.forEach(cat => { %>
-        <% 
-           // Filtrar los productos que pertenecen a esta categoría
-           const prodsDeCategoria = productos.filter(p => p.categoria_id === cat.id);
-        %>
-        
-        <% if (prodsDeCategoria.length > 0) { %>
-          <div class="categoria-section">
-            <h2 class="categoria-title" <%= cat.nombre %></h2>
-            <p style="color: #64748b; margin-top: -15px; margin-bottom: 20px;"><%= cat.descripcion %></p>
-            
-            <div class="productos-grid">
-              <% prodsDeCategoria.forEach(prod => { %>
-                <div class="producto-card">
-                  <% if (prod.especial) { %>
-                    <span class="badge-especial">⭐ Especial</span>
-                  <% } %>
-                  <div>
-                    <h3><%= prod.nombre %></h3>
-                    <div class="precio">$<%= Number(prod.precio).toFixed(2) %></div>
-                  </div>
-                </div>
-              <% }) %>
+      <nav aria-label="Ir a un menú" class="menu-navegacion mt-3">
+        <% menus.forEach(menu => { %>
+          <a class="enlace-menu" href="#menu-<%= menu.id %>"><%= menu.nombre %></a>
+        <% }) %>
+      </nav>
+
+      <% menus.forEach(menu => { %>
+        <section id="menu-<%= menu.id %>" class="seccion-menu" aria-labelledby="titulo-menu-<%= menu.id %>">
+          <div class="mb-4">
+            <div class="d-flex align-items-center flex-wrap gap-3 mb-2">
+              <h2 id="titulo-menu-<%= menu.id %>" class="titulo-menu h3 mb-0"><%= menu.nombre %></h2>
+              <span class="contador"><%= menu.productos.length %> <%= menu.productos.length === 1 ? 'platillo' : 'platillos' %></span>
             </div>
+            <% if (menu.descripcion) { %>
+              <p class="text-secondary descripcion-menu mb-0"><%= menu.descripcion %></p>
+            <% } %>
           </div>
-        <% } %>
+
+          <div class="row g-3 g-lg-4">
+            <% menu.productos.forEach(p => { %>
+              <div class="col-sm-6 col-lg-4 col-xl-3">
+                <article class="card platillo">
+                  <% if (p.imagen_url) { %>
+                    <img src="<%= p.imagen_url %>" class="foto" alt="<%= p.nombre %>" loading="lazy">
+                  <% } else { %>
+                    <div class="foto d-flex justify-content-center align-items-center fs-1" aria-hidden="true">🍽️</div>
+                  <% } %>
+                  <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                      <span class="etiqueta-categoria"><%= p.categoria_nombre || 'Platillo' %></span>
+                      <% if (p.favorito) { %>
+                        <span class="favorito">★ Favorito</span>
+                      <% } %>
+                    </div>
+                    <h3 class="h5 nombre-platillo mt-1"><%= p.nombre %></h3>
+                    <p class="descripcion-platillo text-secondary small flex-grow-1"><%= p.descripcion || 'Preparado al momento.' %></p>
+                    <div class="border-top pt-3 mt-auto">
+                      <span class="precio">$<%= Number(p.precio_base).toFixed(2) %></span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            <% }) %>
+          </div>
+        </section>
       <% }) %>
     <% } %>
+  </main>
 
-  </div>
+  <footer class="pie py-4 text-center text-secondary small">
+    Helping Bee · Menú sujeto a disponibilidad.
+  </footer>
 </body>
 </html>

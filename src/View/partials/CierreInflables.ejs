@@ -1,0 +1,35 @@
+<section class="card tarjeta mb-4 hb-balance" id="cierresInflables">
+    <div class="card-body">
+        <h2 class="h4 fw-bold"> Eventos pendientes de cierre y revisión</h2>
+        <p class="text-secondary small">Se muestran los últimos 30 eventos cuyo horario de fin ya pasó y siguen como Reservada o En uso.</p>
+        <% if (!reservaciones || reservaciones.length === 0) { %>
+            <div class="alert alert-light border mb-0">No hay reservaciones pendientes de finalizar.</div>
+        <% } else { %>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr><th>Folio</th><th>Inflable</th><th>Cliente</th><th>Fin del evento</th><th>Estado</th><th>Acción</th></tr>
+                    </thead>
+                    <tbody>
+                        <% reservaciones.forEach(function(r) { %>
+                            <tr>
+                                <td>#<%= r.id %></td>
+                                <td><%= r.inflable %></td>
+                                <td><%= r.cliente %></td>
+                                <td><%= new Date(r.fin).toLocaleString('es-MX') %></td>
+                                <td><span class="badge text-bg-warning"><%= r.estado %></span></td>
+                                <td>
+                                    <form action="/rentas/reservaciones/<%= r.id %>/finalizar"
+                                          method="POST"
+                                          onsubmit="return confirm('¿Marcar esta reservación como Finalizada?');">
+                                        <button type="submit" class="btn btn-sm btn-success">Finalizar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+    </div>
+</section>

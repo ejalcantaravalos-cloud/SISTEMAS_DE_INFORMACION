@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>ZAVABA | Administración de salones</title>
+    <link href="/css/adminSalones.css" rel="stylesheet">
+</head>
+
+<body>
+
+<%
+    const activos = salones.filter(
+        salon => Number(salon.activo) === 1
+    ).length;
+
+    const inactivos = salones.length - activos;
+
+    const moneda = valor => new Intl.NumberFormat(
+        'es-MX',
+        {
+            style: 'currency',
+            currency: 'MXN'
+        }
+    ).format(Number(valor));
+%>
+
+<main class="contenedor">
+
+    <!-- ENCABEZADO -->
+
+    <header class="encabezado">
+
+        <div>
+            <h1>Administración de salones</h1>
+
+            <p class="subtitulo">
+                ZAVABA · Gestión de espacios para eventos
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-principal"
+            id="btnNuevoSalon"
+        >
+            + Nuevo salón
+        </button>
+
+<a href="/admin" class="btn btn-principal">
+    Regresar al panel
+</a>
+    </header>
+    <!-- MENSAJES -->
+    <% if (aviso) { %>
+        <div class="aviso" role="status">
+            <%= aviso %>
+        </div>
+    <% } %>
+
+    <!-- ESTADÍSTICAS -->
+
+    <section class="estadisticas">
+
+        <div class="estadistica">
+            <span>Salones mostrados</span>
+            <strong><%= salones.length %></strong>
+        </div>
+
+        <div class="estadistica">
+            <span>Activos</span>
+            <strong style="color: #237344;">
+                <%= activos %>
+            </strong>
+        </div>
+
+        <div class="estadistica">
+            <span>Inactivos</span>
+            <strong style="color: #b53535;">
+                <%= inactivos %>
+            </strong>
+        </div>
+
+    </section>
+
+    <!-- BUSCADOR -->
+
+    <form
+        action="/admin/salones"
+        method="GET"
+        class="buscador"
+    >
+
+        <input
+            type="search"
+            name="buscar"
+            placeholder="Buscar salón por nombre..."
+            aria-label="Buscar salón por nombre"
+            value="<%= busqueda || '' %>"
+        >
+
+        <button class="btn btn-principal">
+            Buscar
+        </button>
+
+        <a
+            href="/admin/salones"
+            class="btn btn-secundario"
+        >
+            Ver todos
+        </a>
+
+    </form>
+
+    <!-- LISTADO DE SALONES -->
+
+    <% if (salones.length === 0) { %>
+
+        <div class="vacio">
+            <h2>No se encontraron salones</h2>
+            <p>Registra un salón o realiza otra búsqueda.</p>
+        </div>
+
+    <% } %>
+
+    <section class="salones-grid">
+
+        <% salones.forEach(salon => { %>
+
+            <article class="salon-card">
+
+                <div class="salon-imagen">
+
+                    <% if (salon.imagen) { %>
+
+                        <img
+                            src="<%= salon.imagen %>"
+                            alt="<%= salon.nombre %>"
+                            loading="lazy"
+                        >
+
+                    <% } else { %>
+
+                        <div class="sin-imagen">
+                            Sin fotografía
+                        </div>
+
+                    <% } %>
+
+                    <span class="estado
+                        <%= Number(salon.activo) === 1
+                            ? 'activo'
+                            : 'inactivo' %>">
+
+                        <%= Number(salon.activo) === 1
+                            ? 'Activo'
+                            : 'Inactivo' %>
+
+                    </span>
+
+                </div>
+
+                <div class="salon-contenido">
+
+                    <h2><%= salon.nombre %></h2>
+
+                    <p class="descripcion">
+                        <%= salon.descripcion ||
+                            'Sin descripción' %>
+                    </p>
+
+                    <div class="datos-salon">
+
+                        <p>
+                            <strong>Capacidad:</strong>
+                            <%= salon.capacidad %> personas
+                        </p>
+
+                        <p>
+                            <strong>Tipo:</strong>
+                            <%= salon.tipo_salon ||
+                                'No especificado' %>
+                        </p>
+
+                        <p>
+                            <strong>Dimensiones:</strong>
+
+                            <% if (
+                                salon.largo_m != null &&
+                                salon.ancho_m != null &&
+                                salon.alto_m != null
+                            ) { %>
+
+                                <%= salon.largo_m %> ×
+                                <%= salon.ancho_m %> ×
+                                <%= salon.alto_m %> m
+
+                            <% } else { %>
+
+                                Pendientes
+
+                            <% } %>
+                        </p>
+
+                        <p>
+                            <strong>Superficie:</strong>
+
+                            <%= salon.superficie_m2 == null
+                                ? 'No registrada'
+                                : `${salon.superficie_m2} m²` %>
+                        </p>
+
+                        <p>
+                            <strong>Ubicación:</strong>
+                            <%= salon.ubicacion ||
+                                'No especificada' %>
+                        </p>
+
+                        <p>
+                            <strong>Hora adicional:</strong>
+
+                            <%= salon.tarifa_hora_extra == null
+                                ? 'No especificada'
+                                : moneda(salon.tarifa_hora_extra) %>
+                        </p>
+
+                        <p>
+                            <strong>Cuota de limpieza:</strong>
+
+                            <%= salon.deposito_limpieza == null
+                                ? 'No registrada'
+                                : moneda(salon.deposito_limpieza) %>
+                        </p>
+
+                    </div>
+
+                    <div class="precio">
+                        <%= moneda(salon.tarifa_base) %>
+                    </div>
+
+                    <span class="subtitulo">
+
+                        <%= salon.horas_incluidas == null
+                            ? 'Duración no especificada'
+                            : `Por ${salon.horas_incluidas} horas` %>
+
+                    </span>
+
+                    <div class="acciones">
+
+                        <button
+                            type="button"
+                            class="btn btn-editar btnEditar"
+                            data-id="<%= salon.id %>"
+                        >
+                            Editar
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-secundario btnGaleria"
+                            data-id="<%= salon.id %>"
+                        >
+                            Fotografías
+                        </button>
+
+                        <form
+                            class="acciones-estado"
+                            action="/admin/salones/estado/<%= salon.id %>"
+                            method="POST"
+                        >
+
+                            <input
+                                type="hidden"
+                                name="activo"
+                                value="<%= Number(salon.activo) === 1
+                                    ? 0 : 1 %>"
+                            >
+
+                            <button
+                                class="btn
+                                <%= Number(salon.activo) === 1
+                                    ? 'btn-peligro'
+                                    : 'btn-exito' %>"
+                            >
+                                <%= Number(salon.activo) === 1
+                                    ? 'Deshabilitar salón'
+                                    : 'Habilitar salón' %>
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        <% }); %>
+
+    </section>
+
+</main>
+
+<dialog id="modalSalon">
+
+    <div class="modal-encabezado">
+
+        <h2 id="tituloModal">Registrar salón</h2>
+
+        <button
+            type="button"
+            class="cerrar"
+            data-cerrar="modalSalon"
+            aria-label="Cerrar ventana"
+        >
+            &times;
+        </button>
+
+    </div>
+
+    <div class="modal-contenido">
+
+        <form
+            id="formSalon"
+            action="/admin/salones/crear"
+            method="POST"
+            enctype="multipart/form-data"
+        >
+
+            <div class="form-grid">
+
+                <h3 class="seccion-titulo">
+                    Información general
+                </h3>
+
+                <div class="campo campo-completo">
+
+                    <label for="nombre">Nombre del salón</label>
+
+                    <input
+                        type="text"
+                        id="nombre"
+                        name="nombre"
+                        maxlength="120"
+                        required
+                    >
+
+                </div>
+
+                <div class="campo campo-completo">
+
+                    <label for="descripcion">Descripción</label>
+
+                    <textarea
+                        id="descripcion"
+                        name="descripcion"
+                        rows="4"
+                        maxlength="65535"
+                        required
+                    ></textarea>
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="capacidad">
+                        Capacidad máxima
+                    </label>
+
+                    <input
+                        type="number"
+                        id="capacidad"
+                        name="capacidad"
+                        min="1"
+                        max="2147483647"
+                        required
+                    >
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="tipo_salon">
+                        Tipo de salón
+                    </label>
+
+                    <select
+                        id="tipo_salon"
+                        name="tipo_salon"
+                        required
+                    >
+
+                        <option value="">
+                            Seleccionar
+                        </option>
+
+                        <option value="Abierto">
+                            Abierto
+                        </option>
+
+                        <option value="Techado">
+                            Techado
+                        </option>
+
+                        <option value="Mixto">
+                            Mixto
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="campo campo-completo">
+
+                    <label for="ubicacion">
+                        Ubicación interna
+                    </label>
+
+                    <input
+                        type="text"
+                        id="ubicacion"
+                        name="ubicacion"
+                        maxlength="255"
+                        placeholder="Ej. Junto al jardín"
+                    >
+
+                </div>
+
+                <h3 class="seccion-titulo">
+                    Dimensiones del salón
+                </h3>
+
+                <div class="campo">
+
+                    <label for="largo_m">Largo (m)</label>
+
+                    <input
+                        type="number"
+                        id="largo_m"
+                        name="largo_m"
+                        min="0.01"
+                        max="99999.99"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="ancho_m">Ancho (m)</label>
+
+                    <input
+                        type="number"
+                        id="ancho_m"
+                        name="ancho_m"
+                        min="0.01"
+                        max="99999.99"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="alto_m">Altura (m)</label>
+
+                    <input
+                        type="number"
+                        id="alto_m"
+                        name="alto_m"
+                        min="0.01"
+                        max="99999.99"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+                <div class="superficie">
+
+                    Superficie rectangular:
+
+                    <strong id="superficieCalculada">
+                        0.00 m²
+                    </strong>
+
+                </div>
+
+                <h3 class="seccion-titulo">
+                    Precios y condiciones de renta
+                </h3>
+
+                <div class="campo">
+
+                    <label for="tarifa_base">
+                        Precio de renta ($)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="tarifa_base"
+                        name="tarifa_base"
+                        min="0"
+                        max="9999999999.99"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="horas_incluidas">
+                        Horas incluidas
+                    </label>
+
+                    <input
+                        type="number"
+                        id="horas_incluidas"
+                        name="horas_incluidas"
+                        min="1"
+                        max="2147483647"
+                        required
+                    >
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="tarifa_hora_extra">
+                        Precio por hora adicional ($)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="tarifa_hora_extra"
+                        name="tarifa_hora_extra"
+                        min="0"
+                        max="9999999999.99"
+                        step="0.01"
+                    >
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="deposito_limpieza">
+                        Cuota de limpieza ($)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="deposito_limpieza"
+                        name="deposito_limpieza"
+                        min="0"
+                        max="9999999999.99"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+                <!-- FOTOGRAFÍAS DE CREACIÓN -->
+
+                <div
+                    class="campo campo-completo"
+                    id="seccionFotografias"
+                >
+
+                    <h3 class="seccion-titulo">
+                        Fotografías del salón
+                    </h3>
+
+                    <label for="imagenes">
+                        Seleccionar fotografías
+                    </label>
+
+                    <input
+                        type="file"
+                        id="imagenes"
+                        name="imagenes"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        required
+                    >
+
+                    <span class="ayuda">
+                        Máximo 8 fotografías de 5 MB cada una.
+                        La primera será la portada.
+                    </span>
+
+                    <label for="descripcion_imagen">
+                        Descripción de las fotografías
+                    </label>
+
+                    <input
+                        type="text"
+                        id="descripcion_imagen"
+                        name="descripcion_imagen"
+                        maxlength="255"
+                    >
+
+                </div>
+
+            </div>
+
+            <div class="modal-botones">
+
+                <button
+                    type="button"
+                    class="btn btn-secundario"
+                    data-cerrar="modalSalon"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-principal"
+                    id="btnGuardarSalon"
+                >
+                    Guardar salón
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</dialog>
+
+<dialog id="modalGaleria">
+
+    <div class="modal-encabezado">
+
+        <h2 id="tituloGaleria">
+            Fotografías del salón
+        </h2>
+
+        <button
+            type="button"
+            class="cerrar"
+            data-cerrar="modalGaleria"
+            aria-label="Cerrar galería"
+        >
+            &times;
+        </button>
+
+    </div>
+
+    <div class="modal-contenido">
+
+        <form
+            id="formAgregarImagen"
+            class="agregar-foto"
+            method="POST"
+            enctype="multipart/form-data"
+        >
+
+            <h3>Agregar fotografía</h3>
+
+            <div class="campo">
+
+                <label for="nuevaImagen">
+                    Seleccionar imagen
+                </label>
+
+                <input
+                    type="file"
+                    id="nuevaImagen"
+                    name="imagen"
+                    accept="image/jpeg,image/png,image/webp"
+                    required
+                >
+
+                <label for="nuevaDescripcion">
+                    Descripción
+                </label>
+
+                <input
+                    type="text"
+                    id="nuevaDescripcion"
+                    name="descripcion_imagen"
+                    maxlength="255"
+                >
+
+                <button class="btn btn-principal">
+                    + Agregar fotografía
+                </button>
+
+            </div>
+
+        </form>
+
+        <section
+            id="contenedorGaleria"
+            class="galeria-grid"
+        ></section>
+
+    </div>
+
+</dialog>
+
+<!-- PLANTILLA PARA CADA FOTOGRAFÍA -->
+
+<template id="plantillaFotografia">
+
+    <article class="foto-card">
+
+        <img alt="Fotografía del salón">
+
+        <div class="foto-contenido">
+
+            <p class="descripcionFoto"></p>
+
+            <p class="texto-portada"></p>
+
+            <!-- Establecer portada -->
+
+            <form class="formPortada" method="POST">
+
+                <button class="btn btn-editar">
+                    Establecer como portada
+                </button>
+
+            </form>
+
+            <!-- Reemplazar fotografía -->
+
+            <form
+                class="formReemplazar"
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                <div class="campo">
+
+                    <label>
+                        Reemplazar fotografía
+
+                        <input
+                            type="file"
+                            name="imagen"
+                            accept="image/jpeg,image/png,image/webp"
+                            required
+                        >
+                    </label>
+
+                    <input
+                        type="text"
+                        name="descripcion_imagen"
+                        placeholder="Descripción"
+                        aria-label="Descripción de la fotografía"
+                        maxlength="255"
+                    >
+
+                </div>
+
+                <button class="btn btn-secundario">
+                    Reemplazar
+                </button>
+
+            </form>
+
+            <!-- Eliminar fotografía -->
+
+            <form class="formEliminar" method="POST">
+
+                <button class="btn btn-peligro">
+                    Eliminar fotografía
+                </button>
+
+            </form>
+
+        </div>
+
+    </article>
+
+</template>
+
+<script>
+
+    const modalSalon =
+        document.getElementById('modalSalon');
+
+    const modalGaleria =
+        document.getElementById('modalGaleria');
+
+    const formSalon =
+        document.getElementById('formSalon');
+
+    const seccionFotografias =
+        document.getElementById('seccionFotografias');
+
+    const inputImagenes =
+        document.getElementById('imagenes');
+
+
+    function calcularSuperficie() {
+
+        const largo = Number(
+            document.getElementById('largo_m').value
+        );
+
+        const ancho = Number(
+            document.getElementById('ancho_m').value
+        );
+
+        const superficie = largo > 0 && ancho > 0
+            ? largo * ancho
+            : 0;
+
+        document.getElementById(
+            'superficieCalculada'
+        ).textContent = superficie.toLocaleString(
+            'es-MX',
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        ) + ' m²';
+    }
+
+    document.getElementById('largo_m')
+        .addEventListener('input', calcularSuperficie);
+
+    document.getElementById('ancho_m')
+        .addEventListener('input', calcularSuperficie);
+
+    async function consultarSalon(id) {
+
+        const respuesta = await fetch(
+            `/admin/salones/detalle/${encodeURIComponent(id)}`
+        );
+
+        if (!respuesta.ok) {
+
+            throw new Error(
+                'No se pudo consultar el salón.'
+            );
+        }
+
+        return respuesta.json();
+    }
+
+
+    document.getElementById('btnNuevoSalon')
+        .addEventListener('click', () => {
+
+            formSalon.reset();
+
+            formSalon.action = '/admin/salones/crear';
+
+            formSalon.enctype = 'multipart/form-data';
+
+            document.getElementById(
+                'tituloModal'
+            ).textContent = 'Registrar nuevo salón';
+
+            document.getElementById(
+                'btnGuardarSalon'
+            ).textContent = 'Guardar salón';
+
+            seccionFotografias.hidden = false;
+
+            inputImagenes.disabled = false;
+
+            inputImagenes.required = true;
+
+            document.getElementById(
+                'descripcion_imagen'
+            ).disabled = false;
+
+            calcularSuperficie();
+
+            modalSalon.showModal();
+        });
+
+
+    document.querySelectorAll('.btnEditar')
+        .forEach(boton => {
+
+            boton.addEventListener('click', async () => {
+
+                boton.disabled = true;
+
+                try {
+
+                    const id = boton.dataset.id;
+
+                    const { salon } = await consultarSalon(id);
+
+                    formSalon.reset();
+
+                    formSalon.action =
+                        `/admin/salones/editar/${id}`;
+
+                    formSalon.enctype =
+                        'application/x-www-form-urlencoded';
+
+                    document.getElementById(
+                        'tituloModal'
+                    ).textContent = 'Editar salón';
+
+                    document.getElementById(
+                        'btnGuardarSalon'
+                    ).textContent = 'Guardar cambios';
+
+                    const campos = [
+                        'nombre',
+                        'descripcion',
+                        'capacidad',
+                        'tipo_salon',
+                        'ubicacion',
+                        'largo_m',
+                        'ancho_m',
+                        'alto_m',
+                        'tarifa_base',
+                        'horas_incluidas',
+                        'tarifa_hora_extra',
+                        'deposito_limpieza'
+                    ];
+
+                    campos.forEach(campo => {
+
+                        formSalon.elements.namedItem(
+                            campo
+                        ).value = salon[campo] ?? '';
+
+                    });
+
+                    // La galería se modifica por separado.
+
+                    seccionFotografias.hidden = true;
+
+                    inputImagenes.required = false;
+
+                    inputImagenes.disabled = true;
+
+                    document.getElementById(
+                        'descripcion_imagen'
+                    ).disabled = true;
+
+                    calcularSuperficie();
+
+                    modalSalon.showModal();
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    alert(
+                        'No se pudo cargar la información del salón.'
+                    );
+
+                } finally {
+
+                    boton.disabled = false;
+
+                }
+
+            });
+
+        });
+
+
+    document.querySelectorAll('.btnGaleria')
+        .forEach(boton => {
+
+            boton.addEventListener('click', async () => {
+
+                boton.disabled = true;
+
+                try {
+
+                    const id = boton.dataset.id;
+
+                    const {
+                        salon,
+                        imagenes
+                    } = await consultarSalon(id);
+
+                    document.getElementById(
+                        'tituloGaleria'
+                    ).textContent =
+                        `Fotografías de ${salon.nombre}`;
+
+                    const formAgregar =
+                        document.getElementById(
+                            'formAgregarImagen'
+                        );
+
+                    formAgregar.reset();
+
+                    formAgregar.action =
+                        `/admin/salones/${id}/imagenes/agregar`;
+
+                    mostrarGaleria(id, imagenes);
+
+                    modalGaleria.showModal();
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    alert('No se pudo cargar la galería.');
+
+                } finally {
+
+                    boton.disabled = false;
+
+                }
+
+            });
+
+        });
+
+    function mostrarGaleria(id, imagenes) {
+
+        const contenedor =
+            document.getElementById(
+                'contenedorGaleria'
+            );
+
+        const plantilla =
+            document.getElementById(
+                'plantillaFotografia'
+            );
+
+        contenedor.replaceChildren();
+
+        if (imagenes.length === 0) {
+
+            const mensaje = document.createElement('p');
+
+            mensaje.textContent =
+                'Este salón todavía no tiene fotografías.';
+
+            contenedor.appendChild(mensaje);
+            return;
+        }
+
+        imagenes.forEach(imagen => {
+
+            const tarjeta =
+                plantilla.content.cloneNode(true);
+
+            const rutaBase =
+                `/admin/salones/${id}/imagenes/${imagen.id}`;
+
+            const foto = tarjeta.querySelector('img');
+
+            foto.src = imagen.url;
+
+            foto.alt =
+                imagen.descripcion || 'Fotografía del salón';
+
+            tarjeta.querySelector(
+                '.descripcionFoto'
+            ).textContent =
+                imagen.descripcion || 'Sin descripción';
+
+            const principal =
+                Number(imagen.es_principal) === 1;
+
+            tarjeta.querySelector(
+                '.texto-portada'
+            ).textContent = principal
+                ? '★ Fotografía de portada'
+                : 'Fotografía de galería';
+
+            // Establecer portada.
+
+            const formPortada =
+                tarjeta.querySelector('.formPortada');
+
+            formPortada.action =
+                `${rutaBase}/portada`;
+
+            formPortada.hidden = principal;
+
+            // Reemplazar fotografía.
+
+            const formReemplazar =
+                tarjeta.querySelector('.formReemplazar');
+
+            formReemplazar.action =
+                `${rutaBase}/reemplazar`;
+
+            formReemplazar.elements.namedItem(
+                'descripcion_imagen'
+            ).value = imagen.descripcion ?? '';
+
+            // Eliminar fotografía.
+
+            const formEliminar =
+                tarjeta.querySelector('.formEliminar');
+
+            formEliminar.action =
+                `${rutaBase}/eliminar`;
+
+            const btnEliminar =
+                formEliminar.querySelector('button');
+
+            if (imagenes.length === 1) {
+
+                btnEliminar.disabled = true;
+
+                btnEliminar.textContent =
+                    'Debe conservar una fotografía';
+
+            }
+            formEliminar.addEventListener(
+                'submit',
+                evento => {
+
+                    const confirmar = window.confirm(
+                        '¿Deseas eliminar esta fotografía?'
+                    );
+
+                    if (!confirmar) {
+
+                        evento.preventDefault();
+
+                    }
+                }
+            );
+
+            contenedor.appendChild(tarjeta);
+        });
+    }
+
+    document.querySelectorAll('[data-cerrar]')
+        .forEach(boton => {
+
+            boton.addEventListener('click', () => {
+
+                document.getElementById(
+                    boton.dataset.cerrar
+                ).close();
+
+            });
+
+        });
+
+    function validarArchivos(input) {
+
+        const archivos = Array.from(input.files);
+
+        const formatos = [
+            'image/jpeg',
+            'image/png',
+            'image/webp'
+        ];
+
+        const maximo = input.multiple ? 8 : 1;
+
+        if (archivos.length > maximo) {
+
+            alert(`Puedes seleccionar máximo ${maximo} fotos.`);
+
+            input.value = '';
+
+            return;
+        }
+
+        for (const archivo of archivos) {
+
+            if (!formatos.includes(archivo.type)) {
+
+                alert(
+                    'Solo se permiten imágenes JPG, PNG o WEBP.'
+                );
+
+                input.value = '';
+
+                return;
+            }
+
+            if (
+                archivo.size === 0 ||
+                archivo.size > 5 * 1024 * 1024
+            ) {
+
+                alert(
+                    'Cada fotografía debe tener contenido y pesar máximo 5 MB.'
+                );
+
+                input.value = '';
+
+                return;
+            }
+        }
+    }
+
+    document.addEventListener('change', evento => {
+
+        if (evento.target.matches('input[type="file"]')) {
+
+            validarArchivos(evento.target);
+
+        }
+    });
+
+</script>
+
+</body>
+</html>

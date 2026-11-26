@@ -1,178 +1,386 @@
-const jwt = require('jsonwebtoken')
-const bcrypt = require('bcryptjs')
-const conexion = require('../Database/db')
-const { promisify } = require('util')
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const conexion = require('../Database/db');
 
-//  defecto se crea como 'Aspirante'
+// Convertir consultas de MySQL a promesas
+const consultar = (db, sql, parametros = []) => {
+  return new Promise((resolve, reject) => {
+    db.query(sql, parametros, (error, resultado) => {
+      if (error) return reject(error);
+      resolve(resultado);
+    });
+  });
+};
+
+// Ejecutar operaciones de forma segura en una transacción
+const transaccion = async (operacion) => {
+  const esPool = typeof conexion.getConnection === 'function';
+
+  const db = esPool
+    ? await new Promise((resolve, reject) => {
+        conexion.getConnection((error, connection) => {
+          if (error) return reject(error);
+          resolve(connection);
+        });
+      })
+    : conexion;
+
+  let iniciada = false;
+
+  try {
+    await new Promise((resolve, reject) => {
+      db.beginTransaction(error => {
+        if (error) return reject(error);
+        resolve();
+      });
+    });
+
+    iniciada = true;
+
+    const resultado = await operacion(db);
+
+    await new Promise((resolve, reject) => {
+      db.commit(error => {
+        if (error) return reject(error);
+        resolve();
+      });
+    });
+
+    iniciada = false;
+    return resultado;
+
+  } catch (error) {
+    if (iniciada) {
+      await new Promise(resolve => {
+        db.rollback(() => resolve());
+      });
+    }
+    throw error;
+
+  } finally {
+    if (esPool) db.release();
+  }
+};
+
+// Obtener un usuario con todos sus roles
+const obtenerUsuario = async (campo, valor) => {
+  const condicion = campo === 'email'
+    ? 'u.email = ?'
+    : 'u.id = ?';
+
+  const filas = await consultar(conexion, `
+    SELECT
+      u.id,
+      u.nombre,
+      u.email,
+      u.password,
+      u.activo,
+      r.nombre AS nombre_rol
+    FROM usuarios u
+    LEFT JOIN usuario_rol ur
+      ON ur.usuario_id = u.id
+    LEFT JOIN rol r
+      ON r.id = ur.rol_id
+    WHERE ${condicion}
+  `, [valor]);
+
+  if (filas.length === 0) return null;
+
+  return {
+    id: filas[0].id,
+    nombre: filas[0].nombre,
+    email: filas[0].email,
+    password: filas[0].password,
+    activo: filas[0].activo,
+    roles: [...new Set(
+      filas.map(fila => fila.nombre_rol).filter(Boolean)
+    )]
+  };
+};
+
+// Comprobar la sesión JWT
+const obtenerUsuarioAutenticado = async (req) => {
+  const token = req.cookies?.jwt;
+
+  if (!token) return null;
+
+  let datos;
+
+  try {
+    datos = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    if (
+      error.name === 'TokenExpiredError' ||
+      error.name === 'JsonWebTokenError' ||
+      error.name === 'NotBeforeError'
+    ) {
+      return null;
+    }
+    throw error;
+  }
+
+  const usuario = await obtenerUsuario('id', datos.id);
+
+  if (!usuario || Number(usuario.activo) !== 1) {
+    return null;
+  }
+
+  // Nunca agregar la contraseña a req.user
+  const { password, ...usuarioSeguro } = usuario;
+  return usuarioSeguro;
+};
+
+
+// 1. REGISTRAR USUARIO
 exports.register = async (req, res) => {
   try {
-    const { nombre, email, password } = req.body
+    const { nombre, email, password } = req.body;
 
-    if (!nombre || !email || !password) {
-      return res.render('register', { error: 'Por favor completa todos los campos' })
+    if (
+      typeof nombre !== 'string' ||
+      typeof email !== 'string' ||
+      typeof password !== 'string' ||
+      !nombre.trim() ||
+      !email.trim() ||
+      !password
+    ) {
+      return res.render('register', {
+        error: 'Por favor completa todos los campos'
+      });
     }
 
-    const passwordHash = await bcrypt.hash(password, 8)
+    if (password.length < 8) {
+      return res.render('register', {
+        error: 'La contraseña debe tener al menos 8 caracteres'
+      });
+    }
 
-    conexion.query(
-      'INSERT INTO usuarios SET ?',
-      { nombre: nombre, email: email, password: passwordHash, rol: 'Aspirante' },
-      (error, results) => {
-        if (error) {
-          console.log("Error al registrar:", error)
-          if (error.code === 'ER_DUP_ENTRY') {
-            return res.render('register', { error: 'El correo ya está registrado' })
-          }
-          return res.render('register', { error: 'Error en la base de datos: ' + error.message })
-        }
-        res.redirect('/login')
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await transaccion(async (db) => {
+
+      // Buscar el rol predeterminado
+      const roles = await consultar(db,
+        'SELECT id FROM rol WHERE nombre = ?',
+        ['Aspirante']
+      );
+
+      if (roles.length === 0) {
+        throw new Error('No existe el rol Aspirante');
       }
-    )
-  } catch (error) {
-    console.log(error)
-    res.render('register', { error: 'Error interno del servidor' })
-  }
-}
 
-// Iniciar sesión redirección por rol)
+      // Crear el usuario
+      const resultado = await consultar(db, `
+        INSERT INTO usuarios (nombre, email, password)
+        VALUES (?, ?, ?)
+      `, [
+        nombre.trim(),
+        email.trim().toLowerCase(),
+        passwordHash
+      ]);
+
+      // Asignarle el rol Aspirante
+      await consultar(db, `
+        INSERT INTO usuario_rol (usuario_id, rol_id)
+        VALUES (?, ?)
+      `, [
+        resultado.insertId,
+        roles[0].id
+      ]);
+    });
+
+    return res.redirect('/login');
+
+  } catch (error) {
+    console.error('Error al registrar:', error);
+
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.render('register', {
+        error: 'El correo ya está registrado'
+      });
+    }
+
+    return res.render('register', {
+      error: 'No fue posible registrar el usuario'
+    });
+  }
+};
+
+
+// 2. INICIAR SESIÓN
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body
+    const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.render('login', { error: 'Por favor ingresa email y contraseña' })
+    if (
+      typeof email !== 'string' ||
+      typeof password !== 'string' ||
+      !email.trim() ||
+      !password
+    ) {
+      return res.render('login', {
+        error: 'Por favor ingresa email y contraseña'
+      });
     }
 
-    conexion.query('SELECT * FROM usuarios WHERE email = ?', [email], async (error, results) => {
-      if (error) {
-        console.log("Error de BD en login:", error)
-        return res.render('login', { error: 'Error conectando a la base de datos, intenta de nuevo.' })
+    const usuario = await obtenerUsuario(
+      'email',
+      email.trim()
+    );
+
+    if (
+      !usuario ||
+      !(await bcrypt.compare(password, usuario.password))
+    ) {
+      return res.render('login', {
+        error: 'Email o contraseña incorrectos'
+      });
+    }
+
+    if (Number(usuario.activo) !== 1) {
+      return res.render('login', {
+        error: 'Tu cuenta se encuentra deshabilitada'
+      });
+    }
+
+    if (usuario.roles.length === 0) {
+      return res.render('login', {
+        error: 'Tu cuenta no tiene un rol asignado'
+      });
+    }
+
+    // Generar JWT
+    const token = jwt.sign(
+      { id: usuario.id },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d'
       }
+    );
 
-      if (results.length === 0 || !(await bcrypt.compare(password, results[0].password))) {
-        return res.render('login', { error: 'Email o contraseña incorrectos' })
-      }
-
-      const user = results[0]
-
-      // Generar Token JWT
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN
-      })
-
-      const cookieOptions = {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        httpOnly: true
-      }
-
-      res.cookie('jwt', token, cookieOptions)
-
-      // Redirección estricta según el rol actual en la Base de Datos
-      if (user.rol === 'admin') {
-        return res.redirect('/admin');
-      } else if (user.rol === 'Cocinero') {
-        return res.redirect('/Cocinero');
-      } else if (user.rol === 'Limpieza') {
-        return res.redirect('/Limpieza');
-      } else if (user.rol === 'Mesero') {
-        return res.redirect('/Mesero');
-      } else if (user.rol === 'Cajero') {
-        return res.redirect('/ordenes/caja');
-      } else {
-        // Si es 'Aspirante' o cualquier otro, va directo a la vista de cliente (VistaAspirante.ejs)
-        return res.redirect('/Aspirante');
-      }
-    })
-  } catch (error) {
-    console.log(error)
-    return res.render('login', { error: 'Error interno del servidor' })
-  }
-}
-
-//  Middleware básico de autenticación
-exports.isAuthenticated = async (req, res, next) => {
-  if (!req.cookies || !req.cookies.jwt) {
-    return res.redirect('/login');
-  }
-
-  try {
-    const decodificada = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_SECRET);
-
-    conexion.query('SELECT * FROM usuarios WHERE id = ?', [decodificada.id], (error, results) => {
-      if (error || !results || results.length === 0) {
-        return res.redirect('/login');
-      }
-      req.user = results[0];
-      return next();
+    res.cookie('jwt', token, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
     });
-  } catch (error) {
-    return res.redirect('/login');
-  }
-}
 
-// Middleware de seguridad por rol (Evita que un aspirante o mesero entre a vistas prohibidas)
+    // Prioridad de redirección cuando tiene varios roles
+
+// Prioridad de redirección cuando tiene varios roles
+const destinos = [
+    ['Administrador', '/admin'],
+    ['Cajero rentas', '/rentas'],
+    ['Cajero restaurante', '/Cajero'],
+    ['Cocina', '/Cocinero'],
+    ['Mesero', '/Mesero'],
+    ['Limpieza', '/Limpieza'],
+    ['Aspirante', '/Aspirante']
+];
+
+
+    for (const [rol, ruta] of destinos) {
+      if (usuario.roles.includes(rol)) {
+        return res.redirect(ruta);
+      }
+    }
+
+    // Falta configurar la ruta de Cajero rentas
+    return res.status(403).send(
+      'Tu rol todavía no tiene una vista configurada'
+    );
+
+  } catch (error) {
+    console.error('Error al iniciar sesión:', error);
+
+    return res.render('login', {
+      error: 'Error interno del servidor'
+    });
+  }
+};
+
+
+// 3. VERIFICAR AUTENTICACIÓN
+exports.isAuthenticated = async (req, res, next) => {
+  try {
+    const usuario = await obtenerUsuarioAutenticado(req);
+
+    if (!usuario) {
+      return res.redirect('/login');
+    }
+
+    req.user = usuario;
+    return next();
+
+  } catch (error) {
+    console.error('Error de autenticación:', error);
+    return next(error);
+  }
+};
+
+
+// 4. VERIFICAR PERMISOS SEGÚN ROL
 
 exports.hasRole = (rolesPermitidos) => {
     return async (req, res, next) => {
-
-        if (!req.cookies || !req.cookies.jwt) {
-            return res.redirect('/login');
-        }
-
         try {
-            const decodificada = await promisify(jwt.verify)(
-                req.cookies.jwt,
-                process.env.JWT_SECRET
+            const usuario = req.user ||
+                await obtenerUsuarioAutenticado(req);
+
+            // Verificar que haya sesión
+            if (!usuario) {
+                return res.redirect('/login');
+            }
+
+            // Convertir los roles permitidos en un arreglo
+            const roles = Array.isArray(rolesPermitidos)
+                ? rolesPermitidos
+                : [rolesPermitidos];
+
+            // Comprobar que el usuario tenga roles válidos
+            const rolesUsuario = Array.isArray(usuario.roles)
+                ? usuario.roles
+                : [];
+
+            // Comprobar permisos
+            const tienePermiso = rolesUsuario.some(
+                rol => roles.includes(rol)
             );
 
-            conexion.query(
-                'SELECT * FROM usuarios WHERE id = ?',
-                [decodificada.id],
-                (error, results) => {
+    if (!tienePermiso) {
 
-                    if (error || !results || results.length === 0) {
-                        return res.redirect('/login');
-                    }
+    console.log('ACCESO DENEGADO:', {
+        ruta: req.originalUrl,
+        rolesUsuario: usuario.roles,
+        rolesPermitidos: roles
+    });
 
-                    const user = results[0];
+    return res.status(403).send(
+        'Acceso denegado: no tienes permisos para esta sección.'
+    );
+}
 
-                    // Permite pasar un rol o varios roles
-                    const roles = Array.isArray(rolesPermitidos)
-                        ? rolesPermitidos
-                        : [rolesPermitidos];
+            // Hacer disponible el usuario para el controlador
+            req.user = usuario;
 
-                    console.log('=== VERIFICACIÓN DE ACCESO ===');
-                    console.log('Usuario:', user.email);
-                    console.log('Rol actual:', user.rol);
-                    console.log('Roles permitidos:', roles);
-
-                    // Verificar permiso
-                    if (!roles.includes(user.rol)) {
-
-                        console.log(
-                            'Acceso denegado por rol insuficiente.'
-                        );
-
-                        return res.status(403).send(
-                            'Acceso denegado: tu usuario no tiene permisos para esta sección.'
-                        );
-                    }
-
-                    req.user = user;
-                    return next();
-                }
-            );
+            return next();
 
         } catch (error) {
-            console.error('Error de autenticación:', error);
-            return res.redirect('/login');
+            console.error('Error verificando roles:', error);
+            return next(error);
         }
     };
 };
 
 
-// 5. Cerrar sesión
+
+// 5. CERRAR SESIÓN
 exports.logout = (req, res) => {
-  res.clearCookie('jwt')
-  return res.redirect('/')
-}
+  res.clearCookie('jwt', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  });
+
+  return res.redirect('/');
+};

@@ -1,0 +1,407 @@
+/* HelpingBee · gestión de rentas */
+
+:root {
+    --hb: #9062db;
+    --hb-dark: #6540b2;
+    --hb-ink: #303046;
+    --hb-bg: #f8f6fc;
+    --hb-line: #e7ddf5;
+    --hb-soft: #f0e8fc;
+    --bs-primary: #7546c8;
+    --bs-primary-rgb: 117,70,200;
+}
+
+body {
+    background: var(--hb-bg);
+    color: var(--hb-ink);
+    font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    min-height: 100vh;
+}
+
+.hb-top {
+    background: linear-gradient(110deg,#8051c9,#6840af);
+    color: white;
+    box-shadow: 0 4px 16px #5b2b8f22;
+}
+
+.hb-top a {
+    color: white;
+    text-decoration: none;
+}
+
+.hb-top a:hover {
+    color: white;
+}
+
+.hb-brand {
+    font-weight: 800;
+    font-size: 1.2rem;
+    white-space: nowrap;
+}
+
+.hb-main {
+    max-width: 1320px;
+    margin: auto;
+}
+
+.hb-crumb {
+    font-size: .84rem;
+    color: #6b627b;
+}
+
+.hb-crumb a {
+    color: var(--hb-dark);
+    text-decoration: none;
+}
+
+.hb-kicker {
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--hb-dark);
+}
+
+.hb-heading {
+    letter-spacing: -.03em;
+    font-weight: 780;
+}
+
+.hb-intro {
+    max-width: 720px;
+    color: #716b80;
+}
+
+.hb-panel,.tarjeta,.panel {
+    background: white;
+    border: 1px solid var(--hb-line) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 18px #5b2b8f0a !important;
+}
+
+.hb-panel {
+    padding: clamp(1rem,2.5vw,1.6rem);
+}
+
+.hb-menu-card {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    height: 100%;
+    text-decoration: none;
+    color: var(--hb-ink);
+    background: white;
+    border: 1px solid var(--hb-line);
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px #5b2b8f0a;
+    transition: transform .16s,border-color .16s;
+}
+
+.hb-menu-card:hover {
+    color: var(--hb-ink);
+    border-color: #a98add;
+    transform: translateY(-3px);
+}
+
+.hb-menu-card h2 {
+    font-size: 1.15rem;
+    font-weight: 750;
+    margin: 0;
+}
+
+.hb-menu-card p {
+    font-size: .92rem;
+    color: #716b80;
+    margin: 0;
+}
+
+.hb-menu-card.hb-pending {
+    background: #f5f2f9;
+    box-shadow: none;
+    color: #676174;
+    cursor: default;
+}
+
+.hb-menu-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: var(--hb-soft);
+    color: var(--hb-dark);
+    font-size: 1.4rem;
+}
+
+.hb-menu-icon.rosa {
+    background: #fbe5f1;
+    color: #a74178;
+}
+
+.hb-menu-icon.verde {
+    background: #e3f3e9;
+    color: #256d48;
+}
+
+.hb-menu-icon.azul {
+    background: #e6effc;
+    color: #365eaa;
+}
+
+.hb-menu-icon.amarillo {
+    background: #fff2dc;
+    color: #936319;
+}
+
+.hb-menu-icon.rojo {
+    background: #fbe6e9;
+    color: #a94457;
+}
+
+.hb-enter {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--hb-dark);
+    margin-top: auto;
+    padding-top: .7rem;
+}
+
+.hb-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem;
+    margin: 1rem 0 1.5rem;
+}
+
+.hb-tabs a {
+    border: 1px solid var(--hb-line);
+    background: white;
+    color: var(--hb-dark);
+    padding: .55rem .85rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 650;
+    font-size: .9rem;
+}
+
+.hb-tabs a.active {
+    background: var(--hb-dark);
+    color: white;
+    border-color: var(--hb-dark);
+}
+
+.btn-primary,.btn-morado {
+    background: #7546c8;
+    border-color: #7546c8;
+    color: white;
+}
+
+.btn-primary:hover,.btn-morado:hover {
+    background: #6035ae;
+    border-color: #6035ae;
+    color: white;
+}
+
+.btn-outline-primary {
+    color: #6540b2;
+    border-color: #a88bdc;
+}
+
+.btn-outline-primary:hover,.btn-outline-primary.active {
+    background: #7546c8;
+    border-color: #7546c8;
+    color: white;
+}
+
+.form-control:focus,.form-select:focus {
+    border-color: #ab8ae3;
+    box-shadow: 0 0 0 .2rem #9062db25;
+}
+
+.form-check-input:checked {
+    background-color: #7546c8;
+    border-color: #7546c8;
+}
+
+.form-label {
+    font-weight: 650;
+}
+
+.hb-calendar {
+    display: grid;
+    grid-template-columns: repeat(7,minmax(0,1fr));
+    gap: 6px;
+}
+
+.hb-week {
+    font-size: .76rem;
+    color: #716b80;
+    text-align: center;
+    font-weight: 700;
+}
+
+.hb-day {
+    border: 1px solid var(--hb-line);
+    background: white;
+    border-radius: 10px;
+    min-height: 75px;
+    padding: 7px;
+    text-align: left;
+    color: var(--hb-ink);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 5px;
+}
+
+.hb-day:hover,.hb-day.selected {
+    border-color: var(--hb-dark);
+    outline: 2px solid #9062db55;
+}
+
+.hb-day.busy {
+    background: #f0e8fc;
+}
+
+.hb-day small {
+    font-size: .68rem;
+    line-height: 1.2;
+    color: #6540b2;
+}
+
+.hb-day.empty {
+    visibility: hidden;
+}
+
+.hb-agenda-item {
+    border: 1px solid var(--hb-line);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 9px;
+}
+
+.hb-status-free {
+    color: #216943;
+    background: #e2f3e8;
+}
+
+.hb-status-busy {
+    color: #934054;
+    background: #fbe6e9;
+}
+
+.hb-status-off {
+    color: #686174;
+    background: #eeeaf3;
+}
+
+.hb-status-free,.hb-status-busy,.hb-status-off {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+.hb-footer {
+    color: #786e86;
+    font-size: .8rem;
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.hb-price {
+    font-weight: 700;
+    color: var(--hb-dark);
+}
+
+.hb-scroll {
+    scroll-margin-top: 20px;
+}
+
+.hb-choice.active {
+    background: #f0e8fc !important;
+    color: #533395 !important;
+    border: 2px solid #9062db !important;
+    box-shadow: 0 0 0 2px #9062db20;
+}
+
+.hb-choice:disabled {
+    opacity: .6;
+}
+
+.hb-choice {
+    border-color: #d6c8eb !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+}
+
+.hb-choice:not(:disabled):hover {
+    background: #f0e8fc;
+    color: #533395;
+}
+
+.hb-main [hidden], [hidden] {
+    display: none !important;
+}
+
+.hb-summary {
+    border-top: 4px solid #9062db !important;
+}
+
+.hb-section-number {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    font-size: .9rem;
+    border-radius: 50%;
+    background: #f0e8fc;
+    color: #6540b2;
+    margin-right: .45rem;
+}
+
+.hb-balance {
+    scroll-margin-top: 1rem;
+}
+
+@media (max-width:576px) {
+    .hb-day {
+        min-height: 57px;
+        padding: 4px;
+    }
+
+    .hb-day small {
+        font-size: .58rem;
+    }
+
+    .hb-calendar {
+        gap: 4px;
+    }
+
+    .hb-panel {
+        padding: 14px;
+    }
+
+    .hb-top .hb-brand {
+        font-size: 1rem;
+    }
+}
+
+/* Menú general: solamente las tres tarjetas de servicios. */
+
+.hb-home-menu {
+    max-width: 1100px;
+}
+
+.hb-home-menu .hb-menu-card {
+    min-height: 230px;
+    padding: 2rem;
+}
+
+.hb-home-menu .hb-menu-icon {
+    width: 64px;
+    height: 64px;
+    font-size: 1.8rem;
+}

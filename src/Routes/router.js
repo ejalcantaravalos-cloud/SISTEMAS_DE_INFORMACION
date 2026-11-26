@@ -1,50 +1,84 @@
+
 const express = require('express');
 const router = express.Router();
+
 const authController = require('../Controllers/AuthController');
-const menuController = require('../Controllers/MenuController');
+const PlatilloController = require('../Controllers/PlatilloController');
 const ordenController = require('../Controllers/OrdenController');
 
 
-//  RUTA PÚBLICA 
+// Página principal
 router.get('/', (req, res) => {
-  res.render('index'); 
+  res.render('index');
 });
-// Ruta pública para el catálogo del restaurante
-router.get('/menu', menuController.verMenuPublico);
 
-//  RUTAS DE FORMULARIOS 
+// Menú público del restaurante
+router.get('/menu', PlatilloController.catalogoPublico);
+
+// Formulario de inicio de sesión
 router.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
+
+// Formulario de registro
 router.get('/register', (req, res) => {
   res.render('register', { error: null });
 });
 
-//  RUTAS PROTEGIDAS POR ROL (Con seguridad estricta)
-router.get('/Cocinero', authController.hasRole('Cocinero'), (req, res) => {
-  res.render('VistaCocinero', { user: req.user });
-});
-
-router.get('/Cajero', authController.hasRole('Cajero'), (req, res) => {
-  ordenController.mostrarCaja(req, res);
-});
-
-router.get('/Limpieza', authController.hasRole('Limpieza'), (req, res) => {
-  res.render('VistaLimpieza', { user: req.user });
-});
-
-router.get('/Mesero', authController.hasRole('Mesero'), (req, res) => {
-  res.render('VistaMesero', { user: req.user });
-});
-
-// La ruta aspirante (aquí caen los recién registrados que son 'Aspirante')
-router.get('/Aspirante', authController.isAuthenticated, (req, res) => {
-  res.render('VistaAspirante', { user: req.user });
-});
-
-// Procesamiento de datos de formularios
+// Procesamiento de formularios
 router.post('/register', authController.register);
 router.post('/login', authController.login);
+
+// Cerrar sesión
 router.get('/logout', authController.logout);
+
+
+// COCINA
+
+router.get(
+  '/Cocinero',
+  authController.hasRole(['Cocina', 'Administrador']),
+  (req, res) => res.redirect('/ordenes/cocina')
+);
+
+//Mesero
+router.get(
+  '/Mesero',
+  authController.hasRole(['Mesero', 'Administrador']),
+  (req, res) => res.redirect('/ordenes/mesero')
+);
+
+
+// CAJERO DEL RESTAURANTE
+router.get(
+  '/Cajero',
+  authController.hasRole(['Cajero restaurante', 'Cajero rentas', 'Administrador']),
+  ordenController.mostrarCaja
+);
+
+
+// LIMPIEZA
+router.get(
+  '/Limpieza',
+  authController.hasRole('Limpieza'),
+  (req, res) => {
+    res.render('VistaLimpieza', {
+      user: req.user
+    });
+  }
+);
+
+
+// ASPIRANTE
+router.get(
+  '/Aspirante',
+  authController.hasRole('Aspirante'),
+  (req, res) => {
+    res.render('VistaAspirante', {
+      user: req.user
+    });
+  }
+);
+
 
 module.exports = router;

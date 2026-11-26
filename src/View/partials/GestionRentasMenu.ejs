@@ -1,0 +1,40 @@
+<!-- TARJETAS DE NAVEGACIÓN COMPARTIDAS -->
+
+<div class="row g-3 g-lg-4">
+
+    <% opciones.forEach(([titulo, descripcion, icono, color, ruta]) => { %>
+
+        <div class="col-sm-6 col-lg-4">
+
+            <% if (ruta) { %>
+                <a class="hb-menu-card" href="<%= ruta %>">
+            <% } else { %>
+                <div class="hb-menu-card hb-pending" aria-disabled="true">
+            <% } %>
+
+                <span class="hb-menu-icon <%= color %>">
+                    <i class="bi <%= icono %>"></i>
+                </span>
+
+                <h2><%= titulo %></h2>
+                <p><%= descripcion %></p>
+
+                <div class="hb-enter">
+                    <% if (ruta) { %>
+                        Entrar <i class="bi bi-arrow-right ms-1"></i>
+                    <% } else { %>
+                        <span class="text-muted">Pendiente de implementar</span>
+                    <% } %>
+                </div>
+
+            <% if (ruta) { %>
+                </a>
+            <% } else { %>
+                </div>
+            <% } %>
+
+        </div>
+
+    <% }); %>
+
+</div>

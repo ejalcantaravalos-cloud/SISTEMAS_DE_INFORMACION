@@ -1,0 +1,35 @@
+  body.registro-pedidos { background: #f7f8fc; color: #26324a; }
+    .registro-pedidos .encabezado { background: linear-gradient(120deg,#342b68,#6153a4); color: #fff; border-radius: 18px; padding: 24px; }
+    .registro-pedidos .encabezado .text-muted { color: #e1def8 !important; }
+    .registro-pedidos .tarjeta-resumen, .registro-pedidos .card-pedidos { border: 1px solid #e8eaf2; border-radius: 15px; box-shadow: 0 4px 20px rgba(38,50,74,.06); }
+    .registro-pedidos .tarjeta-resumen { padding: 16px 20px; background: #fff; }
+    .registro-pedidos .numero-resumen { font-size: 1.65rem; line-height: 1.1; font-weight: 750; }
+    .registro-pedidos .tabla-pedidos thead th { background: #f5f5fb; color: #565b75; font-size: .79rem; text-transform: uppercase; letter-spacing: .025em; border-bottom: 0; white-space: nowrap; }
+    .registro-pedidos .tabla-pedidos td { padding-top: 16px; padding-bottom: 16px; }
+    .registro-pedidos .badge-estado { font-weight: 600; font-size: .77rem; border-radius: 20px; padding: .45rem .7rem; display: inline-block; white-space: nowrap; }
+    .registro-pedidos .estado-preparacion { color: #935608; background: #fff0c9; }
+    .registro-pedidos .estado-completo { color: #145e80; background: #dbf2ff; }
+    .registro-pedidos .estado-entregado { color: #126347; background: #d9f7e9; }
+    .registro-pedidos .estado-cancelado { color: #9b2c39; background: #ffe3e6; }
+    .registro-pedidos .estado-desconocido { color: #5e6373; background: #e9eaf0; }
+    .registro-pedidos .detalle-interior { background: #f8f7fe; border-top: 1px solid #e7e3f4; padding: 20px; }
+    .registro-pedidos .detalle-interior .card { border: 1px solid #e8e2f2; border-radius: 12px; }
+    .registro-pedidos .detalle-tabla { font-size: .9rem; }
+    .registro-pedidos .detalle-tabla thead th { background: #f4f2fa; }
+    .registro-pedidos .texto-nota { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .registro-pedidos .texto-referencia { overflow-wrap: anywhere; }
+    .registro-pedidos .btn-comanda { background: #f0edff; color: #45368b; border: 1px solid #dcd5ff; font-weight: 600; }
+    .registro-pedidos .btn-comanda:hover { background: #dfd9ff; color: #332675; }
+    .registro-pedidos .fila-detalle td { padding: 0; }
+    .registro-pedidos .sin-resultados { padding: 36px 12px; text-align: center; color: #737b8d; }
+    @media print {
+      body.registro-pedidos { background: #fff !important; }
+      .no-imprimir { display: none !important; }
+      .registro-pedidos .encabezado { background: #fff !important; color: #000 !important; padding: 8px 0; }
+      .registro-pedidos .encabezado .text-muted { color: #444 !important; }
+      .registro-pedidos .card-pedidos, .registro-pedidos .tarjeta-resumen { box-shadow: none !important; border: 1px solid #ddd; }
+      .registro-pedidos .fila-detalle .collapse:not(.show) { display: block !important; }
+      .registro-pedidos .tabla-pedidos { font-size: 10px; }
+      .registro-pedidos .detalle-interior { padding: 8px; }
+      tr { break-inside: avoid; }
+    }

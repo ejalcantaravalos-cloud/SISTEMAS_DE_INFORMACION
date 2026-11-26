@@ -1,0 +1,120 @@
+   :root { --violeta: #7048c6; --violeta-oscuro: #5734a4; --fondo: #f6f5fa; --tinta: #252339; }
+    body { background: var(--fondo); color: var(--tinta); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .navbar-panel { background: #211b38; }
+    .navbar-brand { font-weight: 750; letter-spacing: -.025em; }
+    .navbar-panel .nav-link { color: #d9d4e8; border-radius: .65rem; padding: .55rem .8rem !important; }
+    .navbar-panel .nav-link:hover, .navbar-panel .nav-link.active { background: rgba(255,255,255,.13); color: white; }
+    .admin-container { max-width: 1320px; }
+    .eyebrow { color: var(--violeta); text-transform: uppercase; font-size: .75rem; font-weight: 750; letter-spacing: .11em; }
+    .card { border: 1px solid #e9e6f0; border-radius: 1.05rem; box-shadow: 0 6px 22px rgba(33,27,56,.035); }
+    .stat-icon { width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center; font-size: 1.3rem; }
+    .stat-icon.purple { background: #eee7fc; color: #6541b4; }
+    .stat-icon.green { background: #e1f6ea; color: #178653; }
+    .stat-icon.blue { background: #e5f1ff; color: #2e6abb; }
+    .btn-brand { background: var(--violeta); color: white; border-color: var(--violeta); }
+    .btn-brand:hover, .btn-brand:focus { background: var(--violeta-oscuro); color: white; border-color: var(--violeta-oscuro); }
+    .table { --bs-table-bg: transparent; }
+    .table thead th { color: #77728c; font-size: .75rem; text-transform: uppercase; letter-spacing: .045em; font-weight: 700; border-bottom-color: #e9e6f0; }
+    .table tbody td { border-bottom-color: #efedf4; }
+    .table tbody tr:last-child td { border-bottom: 0; }
+    .avatar-usuario { width: 42px; height: 42px; background: #ebe5fa; color: #5d3ca7; border-radius: 13px; display: grid; place-items: center; flex: none; font-weight: 750; }
+    .badge-rol { font-weight: 600; border: 1px solid transparent; padding: .48em .7em; }
+    .badge-admin { background: #efe6ff; color: #6940ae; border-color: #e1cffb; }
+    .badge-empleado { background: #eef2f9; color: #405779; border-color: #dfe8f3; }
+    .badge-aspirante { background: #fff1d8; color: #93600e; border-color: #f7e1b8; }
+    .search-input:focus, .form-select:focus { border-color: #a991de; box-shadow: 0 0 0 .2rem rgba(112,72,198,.12); }
+    .section-subtitle { color: #77728c; }
+    .action-buttons .btn { white-space: nowrap; }
+    @media (max-width: 576px) { .page-title { font-size: 1.8rem; } }
+
+    :root {
+      --sidebar-width: 270px;
+      --sidebar-bg: #1e1b2e; /* Color oscuro de respaldo si .navbar-panel no aplica */
+    }
+
+    body {
+      background-color: #f8f9fa;
+    }
+
+    /* Sidebar fijo en pantallas grandes */
+    @media (min-width: 992px) {
+      .admin-sidebar {
+        width: var(--sidebar-width) !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1030;
+      }
+      .admin-main-wrapper {
+        margin-left: var(--sidebar-width);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+    }
+
+    /* Asegura fondo oscuro y texto legible en el sidebar */
+    .admin-sidebar,
+    .admin-sidebar.offcanvas-lg {
+      background-color: var(--sidebar-bg) !important;
+      color: #f1f5f9 !important;
+    }
+
+    /* Enlaces del menú lateral */
+    .sidebar-nav .nav-link {
+      color: #cbd5e1 !important;
+      border-radius: 0.6rem;
+      padding: 0.65rem 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      background-color: transparent !important;
+      transition: all 0.18s ease;
+    }
+
+    .sidebar-nav .nav-link i {
+      color: inherit;
+    }
+
+    .sidebar-nav .nav-link:hover {
+      color: #ffffff !important;
+      background-color: rgba(255, 255, 255, 0.12) !important;
+    }
+
+    .sidebar-nav .nav-link.active {
+      color: #ffffff !important;
+      background-color: rgba(255, 255, 255, 0.2) !important;
+      font-weight: 600;
+    }
+
+    /* Submenús */
+    .sidebar-submenu {
+      padding-left: 1.15rem;
+      margin-left: 0.85rem;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar-submenu .nav-link {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.92rem;
+    }
+
+    /* Rotación de flecha en botones desplegables */
+    .nav-link[data-bs-toggle="collapse"] .chevron-icon {
+      transition: transform 0.2s ease;
+      font-size: 0.8rem;
+    }
+    .nav-link[data-bs-toggle="collapse"]:not(.collapsed) .chevron-icon {
+      transform: rotate(180deg);
+    }
+
+    .sidebar-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #94a3b8 !important;
+      font-weight: 700;
+      padding: 0 0.9rem;
+    }

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis reservaciones | ZABAVA</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/Avisos.css">
+<style>body{background:#f8f6fc;color:#303046}nav,.btn-morado{background:#9062db;color:white}.btn-morado:hover{background:#7546c8;color:white}.bloque{background:white;border:1px solid #e7ddf5;border-radius:16px;padding:20px}</style>
+</head>
+<body>
+<nav class="navbar navbar-dark"><div class="container"><a class="navbar-brand fw-bold" href="/rentas/eventos">ZABAVA</a><a href="/rentas/eventos" class="btn btn-outline-light btn-sm">Regresar a eventos</a></div></nav>
+<main class="container py-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><h1 class="fw-bold">Mis reservaciones</h1><a class="btn btn-morado" href="/rentas/eventos/reservaciones"><i class="bi bi-calendar-plus"></i> Nueva reservación</a></div>
+<p class="text-muted">Historial de eventos registrados por el área de rentas.</p>
+<div class="bloque">
+<label for="buscar" class="form-label">Buscar reservación</label><input id="buscar" class="form-control mb-3" placeholder="Cliente, evento, salón o estado...">
+<div class="table-responsive"><table class="table align-middle">
+<thead><tr><th>ID</th><th>Evento / Cliente</th><th>Paquete</th><th>Salón / Trampolín</th><th>Fecha y horario</th><th>Estado</th><th>Total del servicio</th><th>Depósito</th></tr></thead>
+<tbody id="filas">
+<% const moneda=n=>Number(n).toLocaleString('es-MX',{style:'currency',currency:'MXN'}); %>
+<% reservaciones.forEach(r=>{ %>
+<tr><td><%= r.id %></td><td><%= r.nombre_evento||'Evento' %><br><small><%= r.cliente %></small></td><td><%= r.paquete %></td><td><%= r.salon %><br><small><%= r.inflable||'Sin inflable activo' %></small></td><td><%= r.inicio.slice(0,10) %><br><%= r.inicio.slice(11) %> – <%= r.fin.slice(0,10)===r.inicio.slice(0,10)?r.fin.slice(11):r.fin %></td><td><%= r.estado %></td><td><%= moneda(r.total) %></td><td><%= moneda(r.deposito) %></td></tr>
+<% }); %>
+</tbody></table><p id="vacio" class="text-muted text-center" <%= reservaciones.length?'hidden':'' %>>No hay reservaciones para mostrar.</p></div>
+</div></main>
+<%- include('partials/Aviso') %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>document.getElementById('buscar').addEventListener('input',e=>{const t=e.target.value.toLowerCase();let n=0;document.querySelectorAll('#filas tr').forEach(r=>{r.hidden=!r.textContent.toLowerCase().includes(t);if(!r.hidden)n++;});document.getElementById('vacio').hidden=n!==0;});</script>
+</body></html>

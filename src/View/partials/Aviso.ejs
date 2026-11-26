@@ -1,0 +1,161 @@
+<% if ((typeof aviso !== 'undefined' && aviso) || (typeof avisoDinamico !== 'undefined' && avisoDinamico)) { %>
+
+    <%
+        const esError =
+            typeof tipoAviso !== 'undefined'
+            && tipoAviso === 'error';
+    %>
+
+    <div
+        class="modal fade"
+        id="modalAvisoHelpingBee"
+        tabindex="-1"
+        aria-labelledby="tituloAvisoHelpingBee"
+        aria-describedby="mensajeAvisoHelpingBee"
+        aria-hidden="true"
+    >
+
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+
+            <div class="modal-content hb-aviso
+                <%= esError ? 'hb-error' : 'hb-exito' %>">
+
+                <!-- PUNTITOS DECORATIVOS -->
+
+                <div class="hb-dot"></div>
+
+                <div class="hb-dot hb-two"></div>
+
+
+                <!-- CARITA ANIMADA -->
+
+                <div class="hb-animacion" aria-hidden="true">
+
+                    <div class="hb-face">
+
+                        <div class="hb-eye"></div>
+
+                        <div class="hb-eye hb-right"></div>
+
+                        <div class="hb-mouth"></div>
+
+                    </div>
+
+                    <div class="hb-shadow"></div>
+
+                </div>
+
+
+                <!-- MENSAJE -->
+
+                <h2
+                    class="hb-titulo"
+                    id="tituloAvisoHelpingBee"
+                >
+
+                    <%= esError ? '¡Ups!' : '¡Éxito!' %>
+
+                </h2>
+
+                <p
+                    class="hb-mensaje"
+                    id="mensajeAvisoHelpingBee"
+                >
+
+                    <%= typeof aviso !== 'undefined' ? aviso : '' %>
+
+                </p>
+
+
+                <div class="text-center mb-2" id="enlaceAviso" hidden>
+                    <a class="hb-boton" href="#">Ver resumen de la orden</a>
+                </div>
+
+                <!-- BOTÓN -->
+
+                <div class="text-center">
+
+                    <button
+                        type="button"
+                        class="hb-boton"
+                        data-bs-dismiss="modal"
+                    >
+
+                        <%= esError
+                            ? 'Entendido'
+                            : 'Continuar' %>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ABRIR AUTOMÁTICAMENTE EL AVISO -->
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const elemento = document.getElementById(
+                'modalAvisoHelpingBee'
+            );
+
+            if (elemento) {
+
+                const modal = new bootstrap.Modal(elemento);
+
+                const mensaje = document.getElementById('mensajeAvisoHelpingBee');
+                if (mensaje.textContent.trim()) modal.show();
+
+                window.mostrarAvisoZabava = (tipo, texto, pedidoId = null) => {
+                    const esError = tipo === 'danger' || tipo === 'error';
+                    const contenido = elemento.querySelector('.modal-content');
+                    contenido.classList.toggle('hb-error', esError);
+                    contenido.classList.toggle('hb-exito', !esError);
+                    document.getElementById('tituloAvisoHelpingBee').textContent = esError ? '¡Ups!' : '¡Éxito!';
+                    mensaje.textContent = texto;
+                    elemento.querySelector('[data-bs-dismiss="modal"]').textContent = esError ? 'Entendido' : 'Continuar';
+                    const enlace = document.getElementById('enlaceAviso');
+                    const id = Number(pedidoId);
+                    enlace.hidden = !(Number.isSafeInteger(id) && id > 0);
+                    if (!enlace.hidden) enlace.querySelector('a').href = `/ordenes/cobro/${id}`;
+                    // Evitar dos modales Bootstrap abiertos a la vez.
+                    const abierto = document.querySelector('.modal.show');
+                    if (abierto && abierto !== elemento) {
+                        abierto.addEventListener('hidden.bs.modal', () => modal.show(), { once: true });
+                        bootstrap.Modal.getOrCreateInstance(abierto).hide();
+                    } else {
+                        modal.show();
+                    }
+                };
+
+                // Quitar el aviso de la URL al cerrar,
+                // para que no reaparezca al actualizar.
+
+                elemento.addEventListener(
+                    'hidden.bs.modal',
+                    () => {
+
+                        const url = new URL(window.location.href);
+
+                        url.searchParams.delete('aviso');
+
+                        window.history.replaceState(
+                            null,
+                            '',
+                            url
+                        );
+                    }
+                );
+            }
+        });
+
+    </script>
+
+<% } %>

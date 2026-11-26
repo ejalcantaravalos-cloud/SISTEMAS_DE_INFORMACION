@@ -1,230 +1,598 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Menú del Restaurante</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <!-- Bootstrap -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-    <!-- Bootstrap Icons -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-        rel="stylesheet"
-    >
-    <link rel="stylesheet" href="/css/RestaurantePublico.css">
-    
+    <title>HelpingBee | Nuestros salones</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fffaf2;
+            color: #403529;
+        }
+
+        /* ENCABEZADO */
+
+        .hero {
+            text-align: center;
+            padding: 65px 20px;
+            background: linear-gradient(
+                135deg,
+                #fff5d6,
+                #ffe4a0
+            );
+        }
+
+        .hero span {
+            color: #997022;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+
+        .hero h1 {
+            font-size: clamp(30px, 5vw, 48px);
+            margin: 20px auto;
+            max-width: 850px;
+        }
+
+        .hero p {
+            color: #76654e;
+            max-width: 650px;
+            margin: auto;
+            line-height: 1.7;
+            font-size: 17px;
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+
+        .contenedor {
+            max-width: 1300px;
+            margin: auto;
+            padding: 40px 25px;
+        }
+
+        .titulo-seccion {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .titulo-seccion h2 {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .titulo-seccion p {
+            color: #877b6a;
+        }
+
+        /* TARJETAS */
+
+        .salones-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            gap: 30px;
+            align-items: stretch;
+        }
+
+        .salon-card {
+            background: white;
+            border: 1px solid #eee5d6;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px #00000008;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .salon-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* IMAGEN */
+
+        .salon-imagen {
+            height: 250px;
+            position: relative;
+            background: #f0eadf;
+        }
+
+        .salon-imagen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sin-imagen {
+            height: 100%;
+            display: grid;
+            place-items: center;
+            color: #9b8e7d;
+        }
+
+        .tipo-salon {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #fff5d6;
+            color: #79561e;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        /* INFORMACIÓN DEL SALÓN */
+
+        .salon-contenido {
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .salon-contenido h2 {
+            margin: 0 0 12px;
+            font-size: 25px;
+        }
+
+        .descripcion {
+            color: #827666;
+            line-height: 1.6;
+            min-height: 50px;
+            overflow-wrap: anywhere;
+        }
+
+        .datos-salon {
+            background: #fffbf4;
+            border: 1px solid #f0e8da;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .dato {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #eee5d6;
+        }
+
+        .dato:last-child {
+            border-bottom: none;
+        }
+
+        .dato strong {
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+
+        /* PRECIO */
+
+        .precio-contenedor {
+            margin-top: auto;
+            border-top: 1px solid #eee5d6;
+            padding-top: 20px;
+        }
+
+        .precio-etiqueta {
+            color: #8e806e;
+            font-size: 13px;
+        }
+
+        .precio {
+            color: #9b6a19;
+            font-weight: bold;
+            font-size: 32px;
+            margin: 8px 0;
+        }
+
+        .duracion {
+            color: #8e806e;
+            font-size: 14px;
+        }
+
+        .costos-adicionales {
+            font-size: 14px;
+            color: #76654e;
+            margin-top: 18px;
+            line-height: 1.6;
+        }
+
+        /* MENSAJE DE RENTA MÚLTIPLE */
+
+        .renta-privada {
+            margin: 45px 0 20px;
+            padding: 35px;
+            background: #fff0c9;
+            border: 1px solid #f1db9e;
+            border-radius: 18px;
+            text-align: center;
+        }
+
+        .renta-privada h2 {
+            margin-top: 0;
+            color: #79561e;
+        }
+
+        .renta-privada p {
+            max-width: 650px;
+            margin: auto;
+            line-height: 1.7;
+            color: #76654e;
+        }
+
+        /* CATÁLOGO VACÍO */
+
+        .sin-salones {
+            text-align: center;
+            padding: 50px 20px;
+            background: white;
+            border-radius: 15px;
+            color: #877b6a;
+        }
+
+        /* PIE DE PÁGINA */
+
+        footer {
+            padding: 25px;
+            text-align: center;
+            color: #877b6a;
+            border-top: 1px solid #eee5d6;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+
+            .hero {
+                padding: 40px 18px;
+            }
+
+            .contenedor {
+                padding: 25px 15px;
+            }
+
+            .salon-imagen {
+                height: 220px;
+            }
+
+            .renta-privada {
+                padding: 25px 15px;
+            }
+        }
+
+    </style>
+
 </head>
 
 <body>
 
-    <!-- Barra de navegación -->
-    <nav class="navbar navbar-dark">
-        <div class="container">
+<%
+    // Formatear precios en pesos mexicanos.
 
-            <a class="navbar-brand fw-bold" href="/">
-                <i class="bi bi-stars me-2"></i>
-                Diversión & Eventos
-            </a>
+    const moneda = valor => {
 
-            <a href="/" class="btn btn-outline-light btn-sm">
-                <i class="bi bi-house"></i>
-                Inicio
-            </a>
+        if (valor == null || valor === '') {
+            return 'Por consultar';
+        }
 
-        </div>
-    </nav>
+        const numero = Number(valor);
 
+        if (!Number.isFinite(numero)) {
+            return 'Por consultar';
+        }
 
-    <!-- Presentación -->
-    <header class="hero">
-        <div class="container">
+        return new Intl.NumberFormat('es-MX', {
+            style: 'currency',
+            currency: 'MXN'
+        }).format(numero);
+    };
+%>
 
-            <h1 class="display-5">
-                Nuestro Restaurante
-            </h1>
+<!-- ENCABEZADO PRINCIPAL -->
 
-            <p class="lead mt-3">
-                ¡Descubre los sabores que tenemos para ti!
-            </p>
+<section class="hero">
+
+    <span>CELEBRA CON HELPINGBEE</span>
+
+    <h1>
+        El espacio perfecto para tus mejores momentos
+    </h1>
+
+    <p>
+        Cumpleaños, reuniones familiares y celebraciones
+        especiales. Conoce nuestros salones y encuentra
+        el espacio ideal para disfrutar con tus seres queridos.
+    </p>
+
+</section>
+
+<main class="contenedor">
+
+    <div class="titulo-seccion">
+
+        <h2>Nuestros salones</h2>
+
+        <p>
+            Descubre nuestros espacios para eventos.
+        </p>
+
+    </div>
+
+    <!-- COMPROBAR SI EXISTEN SALONES -->
+
+    <% if (salones.length === 0) { %>
+
+        <div class="sin-salones">
+
+            <h2>No hay salones para mostrar</h2>
 
             <p>
-                Disfruta de nuestro menú de comida rápida,
-                preparado para compartir momentos deliciosos
-                con toda la familia.
-            </p>
-
-        </div>
-    </header>
-
-
-    <!-- Catálogo de platillos -->
-    <main class="container py-5">
-
-        <div class="text-center mb-5">
-
-            <h2 class="fw-bold">
-                Nuestro Menú
-            </h2>
-
-            <p class="text-muted">
-                Conoce nuestros platillos y sus precios.
+                Consulta nuestro catálogo más adelante.
             </p>
 
         </div>
 
+    <% } %>
 
-        <div class="row g-4">
+    <!-- CATÁLOGO -->
 
-            <% if (productos && productos.length > 0) { %>
+    <section class="salones-grid">
 
-                <% productos.forEach(p => { %>
+        <% salones.forEach(salon => { %>
 
-                    <div class="col-md-6 col-lg-4">
+            <article class="salon-card">
 
-                        <div class="card card-platillo h-100">
+                <!-- FOTOGRAFÍA -->
 
-                         
-<!-- Imagen del platillo -->
-<div class="imagen-contenedor">
-    <img
-        id="imagen-platillo-<%= p.id %>"
-        class="imagen-platillo"
-        data-titulo="platillo-<%= p.id %>"
-        data-titulo-alternativo="<%= p.nombre %>"
-        alt="<%= p.nombre %>"
-        hidden
-    >
+                <div class="salon-imagen">
 
-    <span class="text-muted small">
-        Sin fotografía
-    </span>
-</div>
+                    <% if (salon.imagen) { %>
 
+                        <img
+                            src="<%= salon.imagen %>"
+                            alt="<%= salon.descripcion_imagen
+                                || salon.nombre %>"
+                            loading="lazy"
+                        >
 
+                    <% } else { %>
 
-                            <!-- Información -->
-                            <div class="card-body d-flex flex-column">
+                        <div class="sin-imagen">
+                            Fotografía no disponible
+                        </div>
 
-                                <!-- Categoría -->
-                                <p class="categoria mb-2">
+                    <% } %>
 
-                                    <i class="bi bi-tag me-1"></i>
+                    <% if (salon.tipo_salon) { %>
 
-                                    <%= p.categoria_nombre || 'Menú General' %>
+                        <span class="tipo-salon">
 
-                                </p>
+                            <%= salon.tipo_salon %>
 
+                        </span>
 
-                                <!-- Nombre -->
-                                <h4 class="nombre-platillo mb-3">
-                                    <%= p.nombre %>
-                                </h4>
+                    <% } %>
 
+                </div>
 
-                                <!-- Platillo especial -->
-                                <% if (p.especial) { %>
+                <!-- INFORMACIÓN GENERAL -->
 
-                                    <div class="mb-3">
-                                        <span class="badge-especial">
-                                            ⭐ Platillo Especial
-                                        </span>
-                                    </div>
+                <div class="salon-contenido">
+
+                    <h2><%= salon.nombre %></h2>
+
+                    <p class="descripcion">
+
+                        <%= salon.descripcion
+                            || 'Conoce nuestro espacio para eventos.' %>
+
+                    </p>
+
+                    <!-- DATOS DEL SALÓN -->
+
+                    <div class="datos-salon">
+
+                        <div class="dato">
+
+                            <span>👥 Capacidad</span>
+
+                            <strong>
+                                <%= salon.capacidad == null
+                                    ? 'Por consultar'
+                                    : salon.capacidad + ' personas' %>
+                            </strong>
+
+                        </div>
+
+                        <div class="dato">
+
+                            <span>📐 Dimensiones</span>
+
+                            <strong>
+
+                                <% if (
+                                    salon.largo_m != null &&
+                                    salon.ancho_m != null &&
+                                    salon.alto_m != null
+                                ) { %>
+
+                                    <%= salon.largo_m %> ×
+                                    <%= salon.ancho_m %> ×
+                                    <%= salon.alto_m %> m
+
+                                <% } else { %>
+
+                                    Por consultar
 
                                 <% } %>
 
+                            </strong>
 
-                                <!-- Precio -->
-                                <div class="mt-auto">
+                        </div>
 
-                                    <p class="precio mb-2">
-                                        $<%= Number(p.precio).toFixed(2) %>
-                                    </p>
+                        <div class="dato">
 
-                                    <!-- Disponibilidad -->
-                                    <% if (Number(p.stock) > 0) { %>
+                            <span>📏 Superficie</span>
 
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i>
-                                            Disponible
-                                        </span>
+                            <strong>
 
-                                    <% } else { %>
+                                <%= salon.superficie_m2 == null
+                                    ? 'Por consultar'
+                                    : Number(salon.superficie_m2)
+                                        .toLocaleString('es-MX') + ' m²' %>
 
-                                        <span class="badge bg-secondary">
-                                            Agotado por el momento
-                                        </span>
+                            </strong>
 
-                                    <% } %>
+                        </div>
 
-                                </div>
+                        <div class="dato">
+
+                            <span>🕒 Duración de renta</span>
+
+                            <strong>
+
+                                <%= salon.horas_incluidas == null
+                                    ? 'Por consultar'
+                                    : salon.horas_incluidas + ' horas' %>
+
+                            </strong>
+
+                        </div>
+
+                        <% if (salon.ubicacion) { %>
+
+                            <div class="dato">
+
+                                <span>📍 Ubicación</span>
+
+                                <strong>
+                                    <%= salon.ubicacion %>
+                                </strong>
 
                             </div>
+
+                        <% } %>
+
+                    </div>
+
+                    <!-- PRECIO -->
+
+                    <div class="precio-contenedor">
+
+                        <span class="precio-etiqueta">
+                            Precio base de renta
+                        </span>
+
+                        <div class="precio">
+
+                            <%= moneda(salon.tarifa_base) %>
+
+                        </div>
+
+                        <span class="duracion">
+
+                            <% if (salon.horas_incluidas != null) { %>
+
+                                Renta por
+                                <%= salon.horas_incluidas %> horas
+
+                            <% } else { %>
+
+                                Duración por consultar
+
+                            <% } %>
+
+                        </span>
+
+                        <div class="costos-adicionales">
+
+                            <% if (
+                                salon.tarifa_hora_extra != null
+                            ) { %>
+
+                                <p>
+                                    Hora adicional:
+
+                                    <strong>
+                                        <%= moneda(
+                                            salon.tarifa_hora_extra
+                                        ) %>
+                                    </strong>
+                                </p>
+
+                            <% } %>
+
+                            <% if (
+                                salon.deposito_limpieza != null
+                            ) { %>
+
+                                <p>
+                                    Cuota de limpieza:
+
+                                    <strong>
+                                        <%= moneda(
+                                            salon.deposito_limpieza
+                                        ) %>
+                                    </strong>
+                                </p>
+
+                                <small>
+                                    Reembolsable según las
+                                    condiciones de entrega del salón.
+                                </small>
+
+                            <% } %>
 
                         </div>
 
                     </div>
 
-                <% }) %>
-
-            <% } else { %>
-
-                <!-- Sin productos -->
-                <div class="col-12 text-center py-5">
-
-                    <i class="bi bi-cup-hot display-4 text-muted"></i>
-
-                    <h4 class="mt-3">
-                        No hay platillos disponibles
-                    </h4>
-
-                    <p class="text-muted">
-                        Próximamente podrás consultar
-                        nuestro menú.
-                    </p>
-
                 </div>
 
-            <% } %>
+            </article>
 
-        </div>
+        <% }); %>
 
+    </section>
 
-        <!-- Botón regresar -->
-        <div class="text-center mt-5">
+    <!-- RENTA DE VARIOS SALONES -->
 
-            <a href="/" class="btn btn-volver">
-                <i class="bi bi-arrow-left me-2"></i>
-                Volver al Inicio
-            </a>
+    <section class="renta-privada">
 
-        </div>
+        <h2>¿Buscas mayor privacidad?</h2>
 
-    </main>
-
-
-    <!-- Pie de página -->
-    <footer class="text-center">
-
-        <h5 class="fw-bold">
-            Diversión & Eventos
-        </h5>
-
-        <p class="mb-0">
-            Celebraciones, diversión y buena comida
-            en un solo lugar.
+        <p>
+            Puedes solicitar la renta de varios salones
+            o de todos nuestros salones para un mismo evento,
+            sujeto a disponibilidad y condiciones de renta.
         </p>
 
-    </footer>
+    </section>
 
+</main>
 
-    <!-- Cargar fotografías -->
-    <script src="/js/loader_imagenes.js"></script>
+<footer>
+
+    ZABAVA· Salones para eventos
+
+</footer>
 
 </body>
 </html>

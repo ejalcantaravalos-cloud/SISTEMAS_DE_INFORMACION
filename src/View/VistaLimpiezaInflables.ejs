@@ -1,0 +1,376 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Limpieza de inflables | ZABAVA</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        body {
+            background: #f7f8fb;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .marca {
+            background: #9062db;
+        }
+
+        .tarjeta {
+            border: 0;
+            border-radius: 1rem;
+            box-shadow: 0 4px 22px #12203a0c;
+        }
+
+        .etiqueta {
+            font-size: .85rem;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .btn-guardar {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- BARRA PRINCIPAL -->
+
+    <nav class="navbar marca shadow-sm">
+        <div class="container d-flex justify-content-between">
+
+            <span class="navbar-brand mb-0 fw-bold">
+                ZABAVA - Inflables · Limpieza
+            </span>
+
+            <span class="small">
+                Revisión de inflables
+            </span>
+            <div class="mb-3">
+    <a href="/logout"
+       class="btn btn-primary btn-guardar w-100">
+        Cerrar Sesion
+    </a>
+</div>
+
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+
+    <main class="container py-4">
+
+        <div class="mb-4">
+
+            <h1 class="h3 fw-bold">
+                Estado de limpieza y revisión
+            </h1>
+
+            <p class="text-muted">
+                Consulta los inflables y registra
+                el resultado de su revisión
+                después del evento.
+            </p>
+
+        </div>
+
+        <% if (aviso) { %>
+
+            <div
+                class="alert alert-success alert-dismissible fade show"
+                role="alert"
+            >
+
+                <%= aviso %>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar aviso"
+                ></button>
+
+            </div>
+
+        <% } %>
+
+        <% if (!inflables.length) { %>
+
+            <div
+                class="alert alert-secondary alert-dismissible fade show"
+                role="alert"
+            >
+
+                Todavía no existen inflables registrados.
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar aviso"
+                ></button>
+
+            </div>
+
+        <% } %>
+        <div class="row g-3">
+
+            <% for (const inflable of inflables) { %>
+
+                <%
+                    const disponible =
+                        inflable.estado_revision ===
+                        'DISPONIBLE';
+
+                    const pendiente =
+                        inflable.estado_revision ===
+                        'REQUIERE_LIMPIEZA';
+
+                    const sinRevision =
+                        inflable.estado_revision ===
+                        'SIN_REVISION';
+
+                    let etiqueta = 'Requiere limpieza';
+                    let clase = 'text-bg-warning';
+
+                    if (disponible) {
+
+                        etiqueta = 'Listo / revisado';
+                        clase = 'text-bg-success';
+
+                    } else if (sinRevision) {
+
+                        etiqueta = 'Sin revisión registrada';
+                        clase = 'text-bg-secondary';
+
+                    } else if (
+                        inflable.estado_revision ===
+                        'MANTENIMIENTO'
+                    ) {
+
+                        etiqueta = 'En mantenimiento';
+                        clase = 'text-bg-danger';
+
+                    } else if (
+                        inflable.estado_revision ===
+                        'FUERA_SERVICIO'
+                    ) {
+
+                        etiqueta = 'Fuera de servicio';
+                        clase = 'text-bg-dark';
+                    }
+                %>
+
+                <div class="col-md-6 col-xl-4">
+
+                    <article class="card tarjeta h-100">
+
+                        <div class="card-body d-flex flex-column gap-2">
+
+                            <!-- NOMBRE Y ESTADO -->
+
+                            <div class="d-flex flex-wrap
+                                        justify-content-between
+                                        align-items-start gap-2">
+
+                                <h2 class="h5 fw-bold mb-0">
+
+                                    <%= inflable.nombre %>
+
+                                </h2>
+
+                                <span class="badge <%= clase %> etiqueta">
+
+                                    <%= etiqueta %>
+
+                                </span>
+
+                            </div>
+
+                            <div class="small text-muted">
+
+                                ID del inflable:
+                                <%= inflable.id %>
+
+                            </div>
+
+
+                            <% if (!Number(inflable.activo)) { %>
+
+                                <div
+                                    class="alert alert-secondary alert-dismissible fade show py-2 mb-0 small"
+                                    role="alert"
+                                >
+
+                                    Deshabilitado por
+                                    el administrador.
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="alert"
+                                        aria-label="Cerrar aviso"
+                                    ></button>
+
+                                </div>
+
+                            <% } %>
+
+                            <% if (inflable.evento_pendiente) { %>
+
+                                <div
+                                    class="alert alert-warning alert-dismissible fade show py-2 mb-0 small"
+                                    role="alert"
+                                >
+
+                                    Tiene una reservación
+                                    finalizada pendiente
+                                    de revisión.
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="alert"
+                                        aria-label="Cerrar aviso"
+                                    ></button>
+
+                                </div>
+
+                            <% } %>
+
+
+                            <!-- HISTORIAL MÁS RECIENTE -->
+
+                            <% if (inflable.fecha_revision) { %>
+
+                                <div class="small text-muted">
+
+                                    Última revisión:
+
+                                    <%= new Date(
+                                        inflable.fecha_revision
+                                    ).toLocaleString('es-MX') %>
+
+                                    <% if (inflable.empleado_revision) { %>
+
+                                        · <%= inflable.empleado_revision %>
+
+                                    <% } %>
+
+                                </div>
+
+                            <% } %>
+
+                            <form
+                                action="/limpieza/inflables/<%= inflable.id %>/revision"
+                                method="POST"
+                                class="mt-auto pt-2"
+                            >
+
+                                <label
+                                    for="resultado-<%= inflable.id %>"
+                                    class="form-label fw-semibold"
+                                >
+
+                                    Resultado de la revisión
+
+                                </label>
+
+                                <select
+                                    id="resultado-<%= inflable.id %>"
+                                    name="resultado"
+                                    class="form-select mb-2"
+                                    required
+                                >
+
+                                    <option value="DISPONIBLE">
+
+                                        Limpieza y revisión
+                                        terminadas · Disponible
+
+                                    </option>
+
+                                    <option value="REQUIERE_LIMPIEZA">
+
+                                        Todavía requiere limpieza
+
+                                    </option>
+
+                                    <option value="MANTENIMIENTO">
+
+                                        Necesita mantenimiento
+
+                                    </option>
+
+                                    <option value="FUERA_SERVICIO">
+
+                                        Fuera de servicio
+
+                                    </option>
+
+                                </select>
+
+
+                                <label
+                                    for="notas-<%= inflable.id %>"
+                                    class="form-label"
+                                >
+
+                                    Observaciones (opcional)
+
+                                </label>
+
+                                <textarea
+                                    id="notas-<%= inflable.id %>"
+                                    name="observaciones"
+                                    class="form-control mb-3"
+                                    maxlength="2000"
+                                    placeholder="Ej. Se limpió y revisó la lona, sin daños."
+                                ></textarea>
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary btn-guardar w-100"
+                                >
+
+                                    Guardar revisión
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            <% } %>
+
+        </div>
+
+    </main>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+
+</body>
+</html>

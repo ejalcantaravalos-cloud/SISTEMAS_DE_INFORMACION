@@ -1,0 +1,18 @@
+    :root { --violeta: #7048c6; --violeta-oscuro: #5734a4; --fondo: #f6f5fa; --tinta: #252339; }
+    body { background: var(--fondo); color: var(--tinta); font-family: system-ui,-apple-system,"Segoe UI",sans-serif; }
+    .navbar-panel { background: #211b38; }
+    .navbar-brand { font-weight: 750; letter-spacing: -.025em; }
+    .navbar-panel .nav-link { color: #d9d4e8; border-radius: .65rem; padding: .55rem .8rem !important; }
+    .navbar-panel .nav-link:hover,.navbar-panel .nav-link.active { background: rgba(255,255,255,.13); color: white; }
+    .admin-container { max-width: 1260px; }
+    .eyebrow { color: var(--violeta); text-transform: uppercase; font-size: .75rem; font-weight: 750; letter-spacing: .11em; }
+    .card { border: 1px solid #e9e6f0; border-radius: 1rem; box-shadow: 0 6px 22px rgba(33,27,56,.035); }
+    .btn-brand { background: var(--violeta); color: white; border-color: var(--violeta); }
+    .btn-brand:hover,.btn-brand:focus { background: var(--violeta-oscuro); color: white; border-color: var(--violeta-oscuro); }
+    .form-control:focus,.form-select:focus,.form-check-input:focus { border-color: #a991de; box-shadow: 0 0 0 .2rem rgba(112,72,198,.12); }
+    .form-check-input:checked { background-color: var(--violeta); border-color: var(--violeta); }
+    .table thead th { color: #77728c; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+    .icono-ingrediente { width: 39px; height: 39px; border-radius: 12px; background: #eee7fc; color: var(--violeta); display: grid; place-items: center; }
+    .stat { color: #77728c; }
+    .badge-activo { background: #e3f7eb; color: #177245; }
+    .badge-inactivo { background: #f2f0f5; color: #666078; }

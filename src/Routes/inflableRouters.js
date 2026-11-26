@@ -5,15 +5,20 @@ const multer = require('multer');
 
 const InflableController = require('../Controllers/InflableController');
 
-// Configurar subida de imágenes
+
+// CONFIGURAR SUBIDA DE IMÁGENES
 const upload = multer({
+
+    // Guardar temporalmente la fotografía en memoria
     storage: multer.memoryStorage(),
 
     limits: {
         fileSize: 5 * 1024 * 1024
     },
 
+    // Permitir únicamente estos formatos
     fileFilter: (req, file, cb) => {
+
         const formatos = [
             'image/jpeg',
             'image/png',
@@ -28,30 +33,42 @@ const upload = multer({
     }
 });
 
-// Rutas de inflables
-router.get('/inflables', InflableController.listar);
-router.post('/inflables/editar/:id', InflableController.actualizar);
+// LISTAR INFLABLES PARA ADMINISTRACIÓN
+router.get(
+    '/inflables',
+    InflableController.listar
+);
 
+// MOSTRAR CATÁLOGO PÚBLICO
 router.get(
     '/inflables/catalogo',
     InflableController.obtenerCatalogoPublico
 );
 
-// Crear inflable con fotografía
+// CREAR INFLABLE CON FOTOGRAFÍA
 router.post(
     '/inflables/crear',
     upload.single('imagen'),
     InflableController.crear
 );
 
-// Eliminar inflable
-router.get(
+// ACTUALIZAR INFLABLE
+router.post(
+    '/inflables/editar/:id',
+    upload.single('imagen'),
+    InflableController.actualizar
+);  
+
+// ELIMINAR INFLABLE
+router.post(
     '/inflables/eliminar/:id',
     InflableController.eliminar
-);
+); 
 
-// Errores al subir archivos
+
+// MANEJAR ERRORES DE SUBIDA DE ARCHIVOS
 router.use((error, req, res, next) => {
+
     if (
         error instanceof multer.MulterError ||
         error.message === 'Formato de imagen no permitido'
@@ -60,11 +77,14 @@ router.use((error, req, res, next) => {
             'No se pudo subir la fotografía: ' + error.message
         );
     }
-
     next(error);
-    
 });
 
 
+// HABILITAR O DESHABILITAR
+router.post(
+    '/inflables/estado/:id',
+    InflableController.cambiarActivo
+);
 
 module.exports = router;

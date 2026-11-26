@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Administración de manteles | ZAVABA</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+        <link href="/css/Avisos.css" rel="stylesheet">
+
+    <style>
+
+        :root {
+            --morado: #9062db;
+            --morado-oscuro: #7546c8;
+            --morado-claro: #f0e8fc;
+        }
+
+        body {
+            background: #f8f6fc;
+            color: #303046;
+        }
+
+        .navbar {
+            background-color: var(--morado);
+        }
+
+        .btn-morado {
+            background-color: var(--morado);
+            color: white;
+            border: none;
+        }
+
+        .btn-morado:hover,
+        .btn-morado:focus {
+            background-color: var(--morado-oscuro);
+            color: white;
+        }
+
+        .btn-editar {
+            background: var(--morado-claro);
+            color: var(--morado-oscuro);
+            border: none;
+        }
+
+        .btn-editar:hover {
+            background: #e0d0fa;
+            color: var(--morado-oscuro);
+        }
+
+        .card-mantel {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,.08);
+            transition: transform .2s ease;
+        }
+
+        .card-mantel:hover {
+            transform: translateY(-3px);
+        }
+
+        .imagen-contenedor {
+            position: relative;
+            height: 220px;
+            overflow: hidden;
+            background: #f0ecf8;
+        }
+
+        .imagen-mantel {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .muestra-grande {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .etiqueta-color {
+            background: rgba(255,255,255,.9);
+            color: #303046;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .estado-mantel {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        .circulo-color {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,.2);
+            flex-shrink: 0;
+        }
+
+        .precio-mantel {
+            color: var(--morado-oscuro);
+            font-weight: 750;
+            font-size: 1.5rem;
+        }
+
+        .detalle-mantel {
+            background: #f8f6fc;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .descripcion-mantel {
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+            color: #686078;
+            font-size: .92rem;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: var(--morado);
+            color: white;
+        }
+
+        .form-label {
+            font-weight: 600;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--morado);
+            box-shadow: 0 0 0 .2rem rgba(144,98,219,.15);
+        }
+
+        .form-control-color {
+            width: 65px;
+            height: 42px;
+            cursor: pointer;
+        }
+
+        .zona-imagen {
+            border: 2px dashed #d6c4f3;
+            border-radius: 12px;
+            background: #faf7ff;
+            padding: 20px;
+        }
+
+        .imagen-edicion {
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+            background: #f0ecf8;
+            border-radius: 10px;
+        }
+
+        .icono-titulo {
+            color: var(--morado);
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <%
+
+        const listaManteles = Array.isArray(manteles)
+            ? manteles
+            : [];
+
+        const formas = [
+            'Redondo',
+            'Rectangular',
+            'Cuadrado'
+        ];
+
+        const colorSeguro = valor =>
+            /^#[0-9a-fA-F]{6}$/.test(valor || '')
+                ? valor
+                : '#9062db';
+
+        const formatoPrecio = valor =>
+            Number(valor).toLocaleString('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            });
+
+    %>
+
+
+    <!-- =====================================
+         BARRA DE NAVEGACIÓN
+    ====================================== -->
+
+    <nav class="navbar navbar-dark">
+
+        <div class="container">
+
+            <a href="/" class="navbar-brand fw-bold">
+
+                <i class="bi bi-stars me-2"></i>
+
+                ZAVABA
+
+            </a>
+
+            <a href="/admin"
+               class="btn btn-outline-light btn-sm">
+
+                <i class="bi bi-arrow-left me-2"></i>
+
+                Regresar al panel
+
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <main class="container py-5">
+
+        <!-- ENCABEZADO -->
+
+        <div class="d-flex justify-content-between
+                    align-items-center flex-wrap gap-3 mb-4">
+
+            <div>
+
+                <h1 class="fw-bold mb-1">
+
+                    <i class="bi bi-palette icono-titulo me-2"></i>
+
+                    Administración de manteles
+
+                </h1>
+
+                <p class="text-muted mb-0">
+
+                    Administra los colores, medidas y
+                    existencias para tus eventos.
+
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-morado px-4 py-2"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCrearMantel"
+            >
+
+                <i class="bi bi-plus-lg me-2"></i>
+
+                Nuevo mantel
+
+            </button>
+
+        </div>
+
+
+        <!-- MENSAJES -->
+<%- include('partials/Aviso') %>
+
+        <!-- BUSCADOR -->
+
+        <form action="/admin/manteles"
+              method="GET"
+              class="mb-4">
+
+            <div class="input-group">
+
+                <span class="input-group-text bg-white">
+
+                    <i class="bi bi-search"></i>
+
+                </span>
+
+                <input
+                    type="search"
+                    name="buscar"
+                    class="form-control"
+                    placeholder="Buscar por nombre, color o forma..."
+                    value="<%= busqueda %>"
+                >
+
+                <button type="submit" class="btn btn-morado">
+
+                    Buscar
+
+                </button>
+
+                <% if (busqueda) { %>
+
+                    <a href="/admin/manteles"
+                       class="btn btn-outline-secondary">
+
+                        Limpiar
+
+                    </a>
+
+                <% } %>
+
+            </div>
+
+        </form>
+
+
+        <!-- =====================================
+             TARJETAS DE MANTELES
+        ====================================== -->
+
+        <div class="row g-4">
+
+            <% listaManteles.forEach(mantel => { %>
+
+                <div class="col-md-6 col-lg-4">
+
+                    <article class="card card-mantel h-100">
+
+                        <!-- FOTOGRAFÍA O COLOR -->
+
+                        <div class="imagen-contenedor">
+
+                            <% if (mantel.imagen_url) { %>
+
+                                <img
+                                    src="<%= mantel.imagen_url %>"
+                                    class="imagen-mantel"
+                                    alt="<%= mantel.nombre %>"
+                                    loading="lazy"
+                                >
+
+                            <% } else { %>
+
+                                <div
+                                    class="muestra-grande"
+                                    style="background-color: <%= colorSeguro(mantel.codigo_color) %>;"
+                                >
+
+                                    <span class="etiqueta-color">
+
+                                        <i class="bi bi-palette me-2"></i>
+
+                                        <%= mantel.color %>
+
+                                    </span>
+
+                                </div>
+
+                            <% } %>
+
+
+                            <!-- ESTADO -->
+
+                            <span class="estado-mantel badge rounded-pill
+                                <%= Number(mantel.activo) === 1
+                                    ? 'text-bg-success'
+                                    : 'text-bg-secondary' %>">
+
+                                <%= Number(mantel.activo) === 1
+                                    ? 'Activo'
+                                    : 'Inactivo' %>
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- INFORMACIÓN -->
+
+                        <div class="card-body d-flex
+                                    flex-column gap-3">
+
+                            <h3 class="h5 fw-bold mb-0">
+
+                                <%= mantel.nombre %>
+
+                            </h3>
+
+
+                            <!-- COLOR -->
+
+                            <div class="d-flex align-items-center gap-2">
+
+                                <span
+                                    class="circulo-color"
+                                    style="background-color: <%= colorSeguro(mantel.codigo_color) %>;"
+                                ></span>
+
+                                <span class="fw-semibold">
+
+                                    <%= mantel.color %>
+
+                                </span>
+
+                                <small class="text-muted">
+
+                                    <%= mantel.codigo_color %>
+
+                                </small>
+
+                            </div>
+
+
+                            <!-- DESCRIPCIÓN -->
+
+                            <% if (mantel.descripcion) { %>
+
+                                <p class="descripcion-mantel mb-0">
+
+                                    <%= mantel.descripcion %>
+
+                                </p>
+
+                            <% } %>
+
+
+                            <!-- FORMA Y MEDIDAS -->
+
+                            <div class="detalle-mantel">
+
+                                <div class="small mb-2">
+
+                                    <i class="bi bi-square me-2"></i>
+
+                                    Forma:
+
+                                    <strong>
+                                        <%= mantel.forma %>
+                                    </strong>
+
+                                </div>
+
+                                <div class="small">
+
+                                    <i class="bi bi-rulers me-2"></i>
+
+                                    Medidas:
+
+                                    <strong>
+                                        <%= mantel.medidas %> cm    
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- PRECIO -->
+
+                            <div>
+
+                                <span class="small text-muted">
+
+                                    Precio de renta por unidad
+
+                                </span>
+
+                                <div class="precio-mantel">
+
+                                    <%= formatoPrecio(
+                                        mantel.precio_renta
+                                    ) %>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- EXISTENCIAS -->
+
+                            <div class="detalle-mantel">
+
+                                <i class="bi bi-box-seam me-2"></i>
+
+                                Existencias:
+
+                                <strong>
+
+                                    <%= mantel.stock_total %>
+
+                                </strong>
+
+                                <% if (Number(mantel.stock_total) === 0) { %>
+
+                                    <span class="badge text-bg-warning">
+
+                                        Sin existencias
+
+                                    </span>
+
+                                <% } %>
+
+                            </div>
+
+
+                            <!-- BOTONES -->
+
+                            <div class="mt-auto">
+
+                                <hr>
+
+                                <div class="d-flex gap-2">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-editar flex-fill"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEditarMantel<%= mantel.id %>"
+                                    >
+
+                                        <i class="bi bi-pencil-square me-1"></i>
+
+                                        Editar
+
+                                    </button>
+
+                                    <form
+                                        method="POST"
+                                        action="/admin/manteles/estado/<%= mantel.id %>"
+                                        class="flex-fill"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="activo"
+                                            value="<%= Number(mantel.activo) === 1 ? 0 : 1 %>"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="btn w-100
+                                                <%= Number(mantel.activo) === 1
+                                                    ? 'btn-outline-danger'
+                                                    : 'btn-outline-success' %>"
+                                        >
+
+                                            <i class="bi bi-power me-1"></i>
+
+                                            <%= Number(mantel.activo) === 1
+                                                ? 'Desactivar'
+                                                : 'Activar' %>
+
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            <% }); %>
+
+
+            <!-- CATÁLOGO VACÍO -->
+
+            <% if (listaManteles.length === 0) { %>
+
+                <div class="col-12 text-center py-5">
+
+                    <i class="bi bi-palette display-3
+                              icono-titulo"></i>
+
+                    <h4 class="fw-bold mt-3">
+
+                        No hay manteles para mostrar
+
+                    </h4>
+
+                    <p class="text-muted">
+
+                        Registra un mantel o modifica tu búsqueda.
+
+                    </p>
+
+                </div>
+
+            <% } %>
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================
+         MODALES DE CREACIÓN Y EDICIÓN
+    ====================================== -->
+
+    <% [null, ...listaManteles].forEach(mantel => { %>
+
+        <%
+
+            const editando = mantel !== null;
+
+            const modalId = editando
+                ? 'modalEditarMantel' + mantel.id
+                : 'modalCrearMantel';
+
+            const accion = editando
+                ? '/admin/manteles/editar/' + mantel.id
+                : '/admin/manteles/crear';
+
+        %>
+
+        <div
+            class="modal fade"
+            id="<%= modalId %>"
+            tabindex="-1"
+            aria-labelledby="<%= modalId %>Titulo"
+            aria-hidden="true"
+        >
+
+            <div class="modal-dialog modal-lg
+                        modal-dialog-centered
+                        modal-dialog-scrollable">
+
+                <div class="modal-content">
+
+                    <!-- ENCABEZADO -->
+
+                    <div class="modal-header">
+
+                        <h2
+                            class="modal-title fs-5 fw-bold"
+                            id="<%= modalId %>Titulo"
+                        >
+
+                            <i class="bi bi-palette me-2"></i>
+
+                            <%= editando
+                                ? 'Editar mantel'
+                                : 'Registrar mantel' %>
+
+                        </h2>
+
+                        <button
+                            type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"
+                            aria-label="Cerrar"
+                        ></button>
+
+                    </div>
+
+
+                    <!-- FORMULARIO -->
+
+                    <form
+                        action="<%= accion %>"
+                        method="POST"
+                        enctype="multipart/form-data"
+                        class="d-flex flex-column overflow-hidden"
+                    >
+
+                        <div class="modal-body p-4">
+
+                            <!-- NOMBRE -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label"
+                                       for="<%= modalId %>Nombre">
+
+                                    Nombre del mantel
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="nombre"
+                                    id="<%= modalId %>Nombre"
+                                    class="form-control"
+                                    maxlength="120"
+                                    placeholder="Ej. Mantel redondo de tela"
+                                    value="<%= editando ? mantel.nombre : '' %>"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <!-- DESCRIPCIÓN -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label"
+                                       for="<%= modalId %>Descripcion">
+
+                                    Descripción
+
+                                </label>
+
+                                <textarea
+                                    name="descripcion"
+                                    id="<%= modalId %>Descripcion"
+                                    class="form-control"
+                                    rows="3"
+                                    placeholder="Material o características..."
+                                ><%= editando ? (mantel.descripcion || '') : '' %></textarea>
+
+                            </div>
+
+
+                            <!-- COLOR -->
+
+                            <div class="row g-3 mb-3">
+
+                                <div class="col-md-8">
+
+                                    <label class="form-label"
+                                           for="<%= modalId %>Color">
+
+                                        Nombre del color
+
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="color"
+                                        id="<%= modalId %>Color"
+                                        class="form-control"
+                                        maxlength="50"
+                                        placeholder="Ej. Lavanda"
+                                        value="<%= editando ? mantel.color : '' %>"
+                                        required
+                                    >
+
+                                </div>
+
+                                <div class="col-md-4">
+
+                                    <label class="form-label"
+                                           for="<%= modalId %>Codigo">
+
+                                        Seleccionar color
+
+                                    </label>
+
+                                    <div class="d-flex
+                                                align-items-center gap-2">
+
+                                        <input
+                                            type="color"
+                                            name="codigo_color"
+                                            id="<%= modalId %>Codigo"
+                                            class="form-control form-control-color"
+                                            value="<%= editando
+                                                ? colorSeguro(mantel.codigo_color)
+                                                : '#9062db' %>"
+                                            oninput="this.nextElementSibling.textContent = this.value"
+                                            required
+                                        >
+
+                                        <span class="small text-muted">
+
+                                            <%= editando
+                                                ? colorSeguro(mantel.codigo_color)
+                                                : '#9062db' %>
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- FORMA Y MEDIDAS -->
+
+                            <div class="row g-3 mb-3">
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="<%= modalId %>Forma">
+
+                                        Forma
+
+                                    </label>
+
+                                    <select
+                                        name="forma"
+                                        id="<%= modalId %>Forma"
+                                        class="form-select"
+                                        required
+                                    >
+
+                                        <option value=""
+                                            <%= !editando ? 'selected' : '' %>>
+
+                                            Selecciona una forma
+
+                                        </option>
+
+                                        <% formas.forEach(forma => { %>
+
+                                            <option
+                                                value="<%= forma %>"
+                                                <%= editando && mantel.forma === forma
+                                                    ? 'selected'
+                                                    : '' %>
+                                            >
+
+                                                <%= forma %>
+
+                                            </option>
+
+                                        <% }); %>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="<%= modalId %>Medidas">
+
+                                        Medidas
+
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="medidas"
+                                        id="<%= modalId %>Medidas"
+                                        class="form-control"
+                                        maxlength="100"
+                                        placeholder="Ej. 180 cm de diámetro"
+                                        value="<%= editando ? mantel.medidas : '' %>"
+                                        required
+                                    >
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- PRECIO Y STOCK -->
+
+                            <div class="row g-3 mb-4">
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="<%= modalId %>Precio">
+
+                                        Precio de renta por unidad
+
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text">
+
+                                            $
+
+                                        </span>
+
+                                        <input
+                                            type="number"
+                                            name="precio_renta"
+                                            id="<%= modalId %>Precio"
+                                            class="form-control"
+                                            min="0"
+                                            max="9999999999.99"
+                                            step="0.01"
+                                            value="<%= editando ? mantel.precio_renta : '' %>"
+                                            required
+                                        >
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="<%= modalId %>Stock">
+
+                                        Existencias totales
+
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        name="stock_total"
+                                        id="<%= modalId %>Stock"
+                                        class="form-control"
+                                        min="0"
+                                        max="2147483647"
+                                        step="1"
+                                        value="<%= editando ? mantel.stock_total : 0 %>"
+                                        required
+                                    >
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- FOTOGRAFÍA ACTUAL -->
+
+                            <% if (editando && mantel.imagen_url) { %>
+
+                                <div class="mb-3">
+
+                                    <label class="form-label">
+
+                                        Fotografía actual
+
+                                    </label>
+
+                                    <img
+                                        src="<%= mantel.imagen_url %>"
+                                        class="imagen-edicion"
+                                        alt="<%= mantel.nombre %>"
+                                    >
+
+                                </div>
+
+                            <% } %>
+
+
+                            <!-- SUBIR FOTOGRAFÍA -->
+
+                            <div class="zona-imagen">
+
+                                <label class="form-label"
+                                       for="<%= modalId %>Imagen">
+
+                                    <i class="bi bi-image me-2"></i>
+
+                                    <%= editando && mantel.imagen_url
+                                        ? 'Reemplazar fotografía'
+                                        : 'Agregar fotografía' %>
+
+                                </label>
+
+                                <input
+                                    type="file"
+                                    name="imagen"
+                                    id="<%= modalId %>Imagen"
+                                    class="form-control"
+                                    accept="image/jpeg,image/png,image/webp"
+                                >
+
+                                <div class="form-text">
+
+                                    JPG, PNG o WEBP. Máximo 5 MB.
+
+                                    <% if (editando) { %>
+
+                                        Deja vacío para conservar
+                                        la fotografía actual.
+
+                                    <% } else { %>
+
+                                        La fotografía es opcional.
+
+                                    <% } %>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- BOTONES -->
+
+                        <div class="modal-footer">
+
+                            <% if (editando && mantel.imagen_url) { %>
+
+                                <button
+                                    type="submit"
+                                    form="eliminarImagenMantel<%= mantel.id %>"
+                                    class="btn btn-outline-danger me-auto"
+                                >
+
+                                    <i class="bi bi-trash me-1"></i>
+
+                                    Eliminar foto
+
+                                </button>
+
+                            <% } %>
+
+                            <button
+                                type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal"
+                            >
+
+                                Cancelar
+
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="btn btn-morado"
+                            >
+
+                                <i class="bi bi-check-lg me-1"></i>
+
+                                <%= editando
+                                    ? 'Guardar cambios'
+                                    : 'Registrar mantel' %>
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+
+                    <!-- FORMULARIO PARA ELIMINAR FOTO -->
+
+                    <% if (editando && mantel.imagen_url) { %>
+
+                        <form
+                            id="eliminarImagenMantel<%= mantel.id %>"
+                            action="/admin/manteles/<%= mantel.id %>/imagen/eliminar"
+                            method="POST"
+                            onsubmit="return confirm('¿Deseas eliminar esta fotografía?');"
+                        ></form>
+
+                    <% } %>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    <% }); %>
+
+
+    <!-- PIE DE PÁGINA -->
+
+    <footer class="text-center py-4 text-muted">
+
+        <p class="mb-0">
+
+            HelpingBee | Administración de eventos
+
+        </p>
+
+    </footer>
+
+
+    <!-- BOOTSTRAP JAVASCRIPT -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+
+</body>
+
+</html>

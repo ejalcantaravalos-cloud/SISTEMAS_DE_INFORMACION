@@ -1,101 +1,250 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Pedidos - Comandas</title>
- 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #334155;
-    }
-    .card-pedidos {
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de pedidos | ZABAVA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/PedidoRegistro.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/Avisos.css">
 </head>
-<body>
-
-  <div class="container py-4">
- 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fw-bold mb-0">Comandas y Pedidos Activos</h2>
-        <small class="text-muted">Listado general de órdenes registradas en caja</small>
-      </div>
-      <div>
-        <a href="/ordenes/caja " class="btn btn-outline-secondary btn-sm">← Volver al Panel</a>
-      </div>
-    </div>
-
-    
-    <div class="card card-pedidos bg-white">
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th class="ps-3">ID</th>
-                <th>Tipo / Ubicación</th>
-                <th>Cliente</th>
-                <th>Notas / Especificaciones</th>
-                <th>Total</th>
-                <th>Estado</th>
-                <th>Fecha / Hora</th>
-                <th class="text-end pe-3">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (pedidos && pedidos.length > 0) { %>
-                <% pedidos.forEach(p => { %>
-                  <tr>
-                    <td class="ps-3 fw-bold text-primary">#<%= p.id %></td>
-                    <td>
-                    
-                      <span class="badge bg-<%= p.tipo_orden === 'Mesa' ? 'primary' : 'info text-dark' %>">
-                        <%= p.tipo_orden %>
-                      </span>
-                      <% if (p.tipo_orden === 'Mesa') { %>
-                        <div class="small text-muted mt-1">Mesa: #<%= p.numero_mesa %></div>
-                      <% } %>
-                    </td>
-                    <td><%= p.nombre_cliente || 'Mostrador / General' %></td>
-                    <td>
-                      <span class="text-muted small"><%= p.nota || 'Sin notas especiales' %></span>
-                    </td>
-                    <td class="fw-bold text-success">$<%= Number(p.total).toFixed(2) %></td>
-                    <td>
-                      <span class="badge bg-warning text-dark"><%= p.estado %></span>
-                    </td>
-                    <td>
-                      <small class="text-muted"><%= p.fecha_pedido ? new Date(p.fecha_pedido).toLocaleString() : 'N/A' %></small>
-                    </td>
-                    <td class="text-end pe-3">
-                      
-                      <button type="button" class="btn btn-sm btn-outline-dark" onclick="alert('Imprimiendo comanda #<%= p.id %>...');">
-                        Imprimir
-                      </button>
-                    </td>
-                  </tr>
-                <% }) %>
-              <% } else { %>
-                <tr>
-                  <td colspan="8" class="text-center text-muted py-4">
-                    No hay pedidos registrados en este momento.
-                  </td>
-                </tr>
-              <% } %>
-            </tbody>
-          </table>
+<body class="registro-pedidos">
+<%
+    const listaPedidos = Array.isArray(pedidos) ? pedidos : [];
+    const dinero = (n) => Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const nombreEstado = (e) => e || 'Sin estado';
+    const claseEstado = (e) => ({
+        'Enviado': 'estado-desconocido',
+        'Orden tomada': 'estado-preparacion',
+        'Listo para entregar': 'estado-completo',
+        'Entregado': 'estado-entregado',
+        'Cancelado': 'estado-cancelado'
+    })[e] || 'estado-desconocido';
+    const fechaLocal = (fecha) => {
+        if (!fecha) return 'Sin fecha';
+        const f = new Date(fecha);
+        return Number.isNaN(f.getTime()) ? 'Sin fecha' : f.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+    };
+    const contar = (estado) => listaPedidos.filter(p => p.estado === estado).length;
+%>
+<main class="container-fluid px-3 px-lg-5 py-4">
+    <header class="encabezado d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Registro de pedidos</h2>
+            <p class="text-muted mb-0">Consulta las órdenes registradas y sus ingredientes personalizados.</p>
         </div>
-      </div>
-    </div>
-  </div>
+        <div class="d-flex gap-2 no-imprimir">
+            <button type="button" class="btn btn-light btn-sm" onclick="window.print()">Imprimir listado</button>
+            <% if ((user.roles || []).some(r => ['Cajero restaurante', 'Administrador'].includes(r))) { %>
+                <a href="/restaurante/cancelaciones" class="btn btn-outline-light btn-sm">Cancelaciones</a>
+            <% } %>
+            <a href="/ordenes/caja" class="btn btn-outline-light btn-sm">← Volver a caja</a>
+        </div>
+    </header>
 
+    <section class="row g-3 mb-4" aria-label="Resumen de pedidos">
+        <div class="col-6 col-xl"><div class="tarjeta-resumen"><div class="text-muted small mb-1">Pedidos registrados</div><div class="numero-resumen"><%= listaPedidos.length %></div></div></div>
+        <div class="col-6 col-xl"><div class="tarjeta-resumen"><div class="text-muted small mb-1">Enviados</div><div class="numero-resumen"><%= contar('Enviado') %></div></div></div>
+        <div class="col-6 col-xl"><div class="tarjeta-resumen"><div class="text-muted small mb-1">Orden tomada</div><div class="numero-resumen"><%= contar('Orden tomada') %></div></div></div>
+        <div class="col-6 col-xl"><div class="tarjeta-resumen"><div class="text-muted small mb-1">Listos para entregar</div><div class="numero-resumen"><%= contar('Listo para entregar') %></div></div></div>
+        <div class="col-6 col-xl"><div class="tarjeta-resumen"><div class="text-muted small mb-1">Entregados</div><div class="numero-resumen"><%= contar('Entregado') %></div></div></div>
+    </section>
+
+    <section class="card card-pedidos bg-white overflow-hidden">
+        <div class="card-body px-3 px-lg-4 pt-4 pb-3 no-imprimir">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label for="buscarPedidos" class="form-label fw-semibold small">Buscar pedido</label>
+                    <input id="buscarPedidos" type="search" class="form-control" placeholder="Número, cliente, mesa o referencia" autocomplete="off">
+                </div>
+                <div class="col-md-4">
+                    <label for="filtrarEstado" class="form-label fw-semibold small">Estado</label>
+                    <select id="filtrarEstado" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="Enviado">Enviado</option>
+                        <option value="Orden tomada">Orden tomada</option>
+                        <option value="Listo para entregar">Listo para entregar</option>
+                        <option value="Entregado">Entregado</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+            <div class="small text-muted mt-3" id="contadorVisibles" aria-live="polite"></div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 tabla-pedidos">
+                <thead>
+                    <tr>
+                        <th class="ps-3">Pedido</th>
+                        <th>Tipo / Ubicación</th>
+                        <th>Cliente</th>
+                        <th>Notas</th>
+                        <th class="text-end">Total</th>
+                        <th>Estado</th>
+                        <th>Fecha y hora</th>
+                        <th class="text-end pe-3 no-imprimir">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <% listaPedidos.forEach(p => {
+                    const referencia = String(p.nombre_referencia || '').trim();
+                    const esMesa = p.tipo_entrega === 'EN_LOCAL' || p.tipo_orden === 'Mesa';
+                    const coincideMesa = esMesa ? referencia.match(/^Mesa\s+(\d+)(?:\s*-\s*(.*))?$/i) : null;
+                    const numeroMesa = p.numero_mesa || (coincideMesa ? coincideMesa[1] : null);
+                    const clienteDesdeReferencia = coincideMesa ? (coincideMesa[2] || '') : referencia;
+                    const cliente = String(p.cliente_registrado || p.nombre_cliente || clienteDesdeReferencia || '').trim() || 'Sin nombre';
+                    const tipo = p.tipo_entrega === 'PARA_LLEVAR' || p.tipo_orden === 'Para llevar' ? 'Para llevar' :
+                        p.tipo_entrega === 'EVENTO' ? 'Evento' : 'Mesa';
+                    const detalles = Array.isArray(p.detalles) ? p.detalles : [];
+                %>
+                    <tr class="fila-pedido" data-id="<%= p.id %>" data-estado="<%= p.estado || '' %>"
+                            data-busqueda="<%= [p.id, referencia, cliente, numeroMesa || '', tipo, p.nota || ''].join(' ').toLowerCase() %>">
+                        <td class="ps-3 fw-bold text-primary">#<%= p.id %></td>
+                        <td>
+                            <span class="badge text-bg-primary"><%= tipo %></span>
+                            <% if (numeroMesa) { %><div class="small text-muted mt-1">Mesa #<%= numeroMesa %></div><% } %>
+                            <% if (tipo === 'Evento' && referencia) { %><div class="small text-muted mt-1 texto-referencia"><%= referencia %></div><% } %>
+                        </td>
+                        <td class="fw-medium"><%= cliente %></td>
+                        <td class="small text-muted" style="max-width:220px"><span class="texto-nota"><%= p.nota || 'Sin notas' %></span></td>
+                        <td class="text-end fw-bold text-success">$<%= dinero(p.total) %></td>
+                        <td><span class="badge-estado <%= claseEstado(p.estado) %>"><%= nombreEstado(p.estado) %></span></td>
+                        <td class="small text-muted"><%= fechaLocal(p.fecha_pedido) %></td>
+                        <td class="text-end pe-3 no-imprimir">
+                            <button type="button" class="btn btn-sm btn-comanda" data-bs-toggle="collapse"
+                                            data-bs-target="#detallePedido-<%= p.id %>" aria-expanded="false"
+                                            aria-controls="detallePedido-<%= p.id %>">Ver comanda</button>
+                            <% if (p.estado === 'Enviado' && !p.reservacion_id && p.tipo_entrega !== 'EVENTO' && Number(p.usuario_id) === Number(user.id)) { %>
+                                <a class="btn btn-sm btn-outline-primary" href="/ordenes/pedidos/<%= p.id %>/editar">Editar</a>
+                            <% } %>
+                            <% if (p.estado === 'Enviado' && !p.reservacion_id && (user.roles || []).some(r => ['Cajero restaurante', 'Administrador'].includes(r))) { %>
+                                <a class="btn btn-sm btn-outline-danger" href="/restaurante/cancelaciones?pedido=<%= p.id %>">Cancelar</a>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <tr class="fila-detalle" data-detalle-de="<%= p.id %>">
+                        <td colspan="8">
+                            <div class="collapse" id="detallePedido-<%= p.id %>">
+                                <div class="detalle-interior">
+                                    <div class="card">
+                                        <div class="card-body p-3 p-lg-4">
+                                            <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center mb-3">
+                                                <div>
+                                                    <h5 class="fw-bold mb-1">Comanda #<%= p.id %></h5>
+                                                    <div class="text-muted small"><%= cliente %> · <%= tipo %><% if (numeroMesa) { %> · Mesa #<%= numeroMesa %><% } %></div>
+                                                </div>
+                                                <span class="badge-estado <%= claseEstado(p.estado) %>"><%= nombreEstado(p.estado) %></span>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered align-middle detalle-tabla mb-0">
+                                                    <thead>
+                                                        <tr><th>Platillo y personalización</th><th class="text-center">Cantidad</th><th class="text-end">Precio por unidad</th><th class="text-end">Subtotal</th></tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <% if (detalles.length === 0) { %>
+                                                        <tr><td colspan="4" class="text-muted text-center py-4">No se encontraron productos en esta comanda.</td></tr>
+                                                    <% } %>
+                                                    <% detalles.forEach(d => {
+                                                        const cambios = Array.isArray(d.modificaciones) ? d.modificaciones : [];
+                                                        const quitados = cambios.filter(m => m.accion === 'QUITADO' || m.accion === 'QUITAR');
+                                                        const extras = cambios.filter(m => m.accion === 'EXTRA');
+                                                        const opciones = Array.isArray(d.opciones) ? d.opciones : [];
+                                                        const cantidad = Number(d.cantidad || 0);
+                                                        const precioBase = Number(d.precio_unitario ?? d.precio ?? 0);
+                                                        const extrasPorUnidad = extras.reduce((acum, m) => acum + Number(m.porciones || 0) * Number(m.precio_extra_unitario || 0), 0);
+                                                        const opcionesPorUnidad = opciones.reduce((acum, o) => acum + Number(o.ajuste_precio_unitario ?? o.ajuste ?? 0), 0);
+                                                        const precioConExtras = precioBase + extrasPorUnidad + opcionesPorUnidad;
+                                                        const subtotal = d.subtotal == null ? precioConExtras * cantidad : Number(d.subtotal);
+                                                    %>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="fw-semibold"><%= d.nombre || d.nombre_producto_historico || 'Producto' %></div>
+                                                                <% if (quitados.length || extras.length || opciones.length) { %>
+                                                                    <div class="mt-2 d-flex flex-column gap-1 small">
+                                                                        <% quitados.forEach(m => { %>
+                                                                            <div class="text-danger">− Sin <%= m.nombre || m.nombre_ingrediente_historico || 'ingrediente' %></div>
+                                                                        <% }); %>
+                                                                        <% extras.forEach(m => { %>
+                                                                            <div class="text-success">+ <%= m.nombre || m.nombre_ingrediente_historico || 'Extra' %> × <%= m.porciones %>
+                                                                                <% if (Number(m.precio_extra_unitario) > 0) { %>
+                                                                                    (+$<%= dinero(Number(m.precio_extra_unitario) * Number(m.porciones || 0)) %> por platillo)
+                                                                                <% } %>
+                                                                            </div>
+                                                                        <% }); %>
+                                                                        <% opciones.forEach(o => { %>
+                                                                            <div class="text-primary">• <%= o.nombre || o.nombre_opcion_historico || 'Opción' %></div>
+                                                                        <% }); %>
+                                                                    </div>
+                                                                <% } else { %>
+                                                                    <div class="small text-muted mt-1">Sin modificaciones</div>
+                                                                <% } %>
+                                                                <% if (d.nota_cocina) { %>
+                                                                    <div class="small mt-2 texto-nota"><strong>Nota de cocina:</strong> <%= d.nota_cocina %></div>
+                                                                <% } %>
+                                                            </td>
+                                                            <td class="text-center"><%= cantidad %></td>
+                                                            <td class="text-end">
+                                                                $<%= dinero(precioConExtras) %>
+                                                                <% if (extrasPorUnidad || opcionesPorUnidad) { %>
+                                                                    <div class="small text-muted">Base $<%= dinero(precioBase) %></div>
+                                                                <% } %>
+                                                            </td>
+                                                            <td class="text-end fw-semibold">$<%= dinero(subtotal) %></td>
+                                                        </tr>
+                                                    <% }); %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <% if (p.nota) { %>
+                                                <div class="alert alert-light border mt-3 mb-0 texto-nota"><strong>Notas generales:</strong> <%= p.nota %></div>
+                                            <% } %>
+                                            <div class="d-flex justify-content-end align-items-center gap-3 mt-3">
+                                                <span class="fw-semibold">Total del pedido:</span>
+                                                <span class="fs-4 fw-bold text-success">$<%= dinero(p.total) %></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                <% }); %>
+                <% if (listaPedidos.length === 0) { %>
+                    <tr><td colspan="8" class="sin-resultados">Todavía no hay pedidos registrados.</td></tr>
+                <% } %>
+                <tr id="filaSinCoincidencias" hidden><td colspan="8" class="sin-resultados">No encontramos pedidos con esos filtros.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<%- include('partials/Aviso') %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (() => {
+        const buscar = document.getElementById('buscarPedidos');
+        const filtro = document.getElementById('filtrarEstado');
+        const filas = Array.from(document.querySelectorAll('.fila-pedido'));
+        const sinCoincidencias = document.getElementById('filaSinCoincidencias');
+        const contador = document.getElementById('contadorVisibles');
+        function filtrar() {
+            const texto = buscar.value.trim().toLocaleLowerCase('es-MX');
+            const estado = filtro.value;
+            let visibles = 0;
+            for (const fila of filas) {
+                const mostrar = (!texto || fila.dataset.busqueda.includes(texto)) && (!estado || fila.dataset.estado === estado);
+                fila.hidden = !mostrar;
+                const detalle = document.querySelector('[data-detalle-de="' + fila.dataset.id + '"]');
+                if (detalle) detalle.hidden = !mostrar;
+                if (mostrar) visibles++;
+            }
+            contador.textContent = visibles + ' pedido' + (visibles === 1 ? '' : 's') + ' visible' + (visibles === 1 ? '' : 's');
+            if (sinCoincidencias) sinCoincidencias.hidden = filas.length === 0 || visibles > 0;
+        }
+        buscar.addEventListener('input', filtrar);
+        filtro.addEventListener('change', filtrar);
+        filtrar();
+    })();
+</script>
 </body>
 </html>

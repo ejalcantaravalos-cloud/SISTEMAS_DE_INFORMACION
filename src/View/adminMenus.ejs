@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administrar menús | ZAVABA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f7fc; color: #292337; }
+    .barra { background: #4e326f; }
+    .barra a { color: #fff; text-decoration: none; }
+    .panel { border: 1px solid #e7e1ef; border-radius: 1rem; box-shadow: 0 5px 22px rgba(38,22,58,.05); }
+    .btn-violeta { background: #67438d; color: white; border-color: #67438d; }
+    .btn-violeta:hover, .btn-violeta:focus { background: #543575; color: white; }
+    .text-ayuda { color: #716c7b; font-size: .88rem; }
+    .lista-productos { max-height: 215px; overflow-y: auto; background: #fcfbff; border: 1px solid #e8e3f0; border-radius: .7rem; }
+    .producto-fila { padding: .6rem .8rem; border-bottom: 1px solid #ece8f1; }
+    .producto-fila:last-child { border-bottom: 0; }
+    .nombre-menu { max-width: 220px; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <nav class="barra py-3 mb-4">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <strong><i class="bi bi-journal-text me-2"></i>Diversión y Eventos · Menús</strong>
+      <div class="d-flex gap-3 small">
+        <a href="/admin">Panel</a>
+        <a href="/admin/menu/productos">Platillos</a>
+        <a href="/admin/ingredientes">Ingredientes</a>
+        <a href="/admin/menu/categorias">Categorías</a>
+        <a href="/menu">Menú público</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+      <div>
+        <h1 class="h3 fw-bold mb-1">Gestión de menús</h1>
+        <p class="text-ayuda mb-0">Organiza platillos en menús generales, especiales o por temporada.</p>
+      </div>
+      <span class="badge text-bg-light border px-3 py-2"><span id="contadorMenus"><%= menus.length %></span> menús</span>
+    </div>
+
+    <div id="aviso" class="alert alert-dismissible <%= mensajeError ? 'alert-danger' : 'alert-success' %> <%= mensajeError || mensajeOk ? '' : 'd-none' %>" role="status" aria-live="polite">
+      <span id="avisoTexto"><%= mensajeError || mensajeOk %></span>
+      <button type="button" id="cerrarAviso" class="btn-close" aria-label="Cerrar aviso"></button>
+    </div>
+
+    <div class="row g-4 align-items-start">
+      <div class="col-lg-5">
+        <section class="card panel">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="h5 fw-bold mb-0" id="tituloFormulario">Crear menú</h2>
+              <button type="button" id="cancelarEdicion" class="btn btn-sm btn-outline-secondary d-none">Cancelar</button>
+            </div>
+            <form id="formMenu" method="POST" action="/admin/menu/menus/crear">
+              <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre del menú *</label>
+                <input class="form-control" id="nombre" name="nombre" maxlength="120" required placeholder="Ej. Menú navideño">
+              </div>
+              <div class="mb-3">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="2" maxlength="5000" placeholder="¿Qué ofrece este menú?"></textarea>
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                  <label for="inicio_vigencia" class="form-label">Inicio (opcional)</label>
+                  <input class="form-control" type="datetime-local" id="inicio_vigencia" name="inicio_vigencia">
+                </div>
+                <div class="col-sm-6">
+                  <label for="fin_vigencia" class="form-label">Fin (opcional)</label>
+                  <input class="form-control" type="datetime-local" id="fin_vigencia" name="fin_vigencia">
+                </div>
+              </div>
+              <p class="text-ayuda">Sin fechas, el menú no caduca automáticamente. Si indicas ambas, la fecha final debe ser posterior a la inicial.</p>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 class="h6 mb-0 fw-bold">Productos del menú</h3>
+                <span id="cuantosSeleccionados" class="badge text-bg-light border">0 seleccionados</span>
+              </div>
+              <% if (!productos.length) { %>
+                <div class="alert alert-warning small">Aún no hay productos registrados. Puedes crear el menú y añadirlos después.</div>
+              <% } else { %>
+                <div class="lista-productos mb-3" id="listaProductos">
+                  <% productos.forEach(p => { %>
+                    <label class="producto-fila d-flex align-items-center gap-2 mb-0">
+                      <input class="form-check-input mt-0 producto-check" type="checkbox" name="producto_ids" value="<%= p.id %>">
+                      <span class="flex-grow-1">
+                        <strong class="d-block small"><%= p.nombre %></strong>
+                        <span class="text-ayuda"><%= p.tipo_nombre %> · $<%= Number(p.precio_base).toFixed(2) %><%= Number(p.activo) ? '' : ' · Inactivo' %></span>
+                      </span>
+                    </label>
+                  <% }) %>
+                </div>
+              <% } %>
+              <button type="submit" id="guardarMenu" class="btn btn-violeta w-100">
+                <i class="bi bi-check-circle me-1"></i> Guardar menú
+              </button>
+            </form>
+          </div>
+        </section>
+      </div>
+
+      <div class="col-lg-7">
+        <section class="card panel">
+          <div class="card-body p-4">
+            <h2 class="h5 fw-bold mb-3">Menús registrados</h2>
+            <div id="listaMenus">
+              <% if (!menus.length) { %>
+                <p class="text-secondary mb-0">Todavía no hay menús. Crea el primero desde el formulario.</p>
+              <% } else { %>
+                <div class="table-responsive">
+                  <table class="table align-middle">
+                    <thead>
+                      <tr><th>Menú</th><th>Publicación</th><th class="text-end">Acciones</th></tr>
+                    </thead>
+                    <tbody>
+                      <% menus.forEach(m => { %>
+                        <tr>
+                          <td>
+                            <div class="fw-semibold nombre-menu"><%= m.nombre %></div>
+                            <div class="text-ayuda"><%= m.producto_ids.length %> producto(s)</div>
+                            <div class="text-ayuda"><%= m.inicio_texto ? 'Desde ' + m.inicio_texto : 'Sin fecha inicial' %></div>
+                            <div class="text-ayuda"><%= m.fin_texto ? 'Hasta ' + m.fin_texto : 'Sin fecha final' %></div>
+                          </td>
+                          <td>
+                            <% if (m.estado_publicacion === 'Vigente') { %>
+                              <span class="badge text-bg-success">Vigente</span>
+                            <% } else if (m.estado_publicacion === 'Programado') { %>
+                              <span class="badge text-bg-info">Programado</span>
+                            <% } else if (m.estado_publicacion === 'Finalizado') { %>
+                              <span class="badge text-bg-secondary">Finalizado</span>
+                            <% } else { %>
+                              <span class="badge text-bg-warning">Inactivo</span>
+                            <% } %>
+                          </td>
+                          <td class="text-end">
+                            <div class="d-flex flex-wrap justify-content-end gap-2">
+                              <button type="button" class="btn btn-sm btn-outline-secondary btn-editar"
+                                data-id="<%= m.id %>"
+                                data-nombre="<%= m.nombre %>"
+                                data-descripcion="<%= m.descripcion || '' %>"
+                                data-inicio="<%= m.inicio_input || '' %>"
+                                data-fin="<%= m.fin_input || '' %>"
+                                data-productos="<%= JSON.stringify(m.producto_ids) %>">
+                                <i class="bi bi-pencil-square"></i> Editar
+                              </button>
+                              <form method="POST" action="/admin/menu/menus/estado/<%= m.id %>" class="form-estado">
+                                <button class="btn btn-sm <%= Number(m.activo) ? 'btn-outline-danger' : 'btn-outline-success' %>" type="submit">
+                                  <%= Number(m.activo) ? 'Desactivar' : 'Activar' %>
+                                </button>
+                              </form>
+                            </div>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    'use strict';
+    const form = document.getElementById('formMenu');
+    const botonGuardar = document.getElementById('guardarMenu');
+    const cancelar = document.getElementById('cancelarEdicion');
+    const aviso = document.getElementById('aviso');
+    const avisoTexto = document.getElementById('avisoTexto');
+    const listado = document.getElementById('listaMenus');
+    const checks = document.querySelectorAll('.producto-check');
+
+    document.getElementById('cerrarAviso').addEventListener('click', () => aviso.classList.add('d-none'));
+
+    function mostrarAviso(mensaje, tipo = 'success') {
+      aviso.classList.remove('alert-success', 'alert-danger', 'd-none');
+      aviso.classList.add(tipo === 'success' ? 'alert-success' : 'alert-danger');
+      avisoTexto.textContent = mensaje;
+      aviso.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    function actualizarContador() {
+      document.getElementById('cuantosSeleccionados').textContent =
+        `${[...checks].filter(c => c.checked).length} seleccionados`;
+    }
+    checks.forEach(c => c.addEventListener('change', actualizarContador));
+
+    function limpiarFormulario() {
+      form.reset();
+      form.action = '/admin/menu/menus/crear';
+      document.getElementById('tituloFormulario').textContent = 'Crear menú';
+      cancelar.classList.add('d-none');
+      actualizarContador();
+    }
+    cancelar.addEventListener('click', limpiarFormulario);
+
+    listado.addEventListener('click', evento => {
+      const boton = evento.target.closest('.btn-editar');
+      if (!boton) return;
+      const id = Number(boton.dataset.id);
+      if (!Number.isSafeInteger(id) || id <= 0) return;
+
+      document.getElementById('nombre').value = boton.dataset.nombre || '';
+      document.getElementById('descripcion').value = boton.dataset.descripcion || '';
+      document.getElementById('inicio_vigencia').value = boton.dataset.inicio || '';
+      document.getElementById('fin_vigencia').value = boton.dataset.fin || '';
+      const seleccionados = new Set(JSON.parse(boton.dataset.productos || '[]').map(Number));
+      checks.forEach(c => { c.checked = seleccionados.has(Number(c.value)); });
+      actualizarContador();
+      form.action = `/admin/menu/menus/editar/${id}`;
+      document.getElementById('tituloFormulario').textContent = 'Editar menú';
+      cancelar.classList.remove('d-none');
+      form.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+
+    async function enviar(url, datos) {
+      const respuesta = await fetch(url, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+        body: datos
+      });
+      if (respuesta.redirected || !(respuesta.headers.get('content-type') || '').includes('application/json')) {
+        throw new Error('No se recibió la confirmación del servidor. Revisa tu sesión y comprueba si el cambio se guardó.');
+      }
+      const resultado = await respuesta.json();
+      if (!respuesta.ok || !resultado.ok) throw new Error(resultado.mensaje || 'No se pudo guardar.');
+      return resultado;
+    }
+
+    async function refrescarLista() {
+      const respuesta = await fetch('/admin/menu/menus', {
+        credentials: 'same-origin', headers: {Accept: 'text/html'}
+      });
+      if (!respuesta.ok || respuesta.redirected) throw new Error('No se pudo actualizar el listado.');
+      const documento = new DOMParser().parseFromString(await respuesta.text(), 'text/html');
+      const nuevoListado = documento.getElementById('listaMenus');
+      if (!nuevoListado) throw new Error('No se pudo leer el listado actualizado.');
+      listado.innerHTML = nuevoListado.innerHTML;
+      document.getElementById('contadorMenus').textContent = documento.getElementById('contadorMenus').textContent;
+    }
+
+    form.addEventListener('submit', async evento => {
+      evento.preventDefault();
+      if (!form.reportValidity() || botonGuardar.disabled) return;
+      const inicio = document.getElementById('inicio_vigencia').value;
+      const fin = document.getElementById('fin_vigencia').value;
+      if (inicio && fin && fin <= inicio) {
+        mostrarAviso('La fecha final debe ser posterior a la inicial.', 'danger');
+        return;
+      }
+      botonGuardar.disabled = true;
+      try {
+        const resultado = await enviar(form.action, new URLSearchParams(new FormData(form)));
+        limpiarFormulario();
+        mostrarAviso(resultado.mensaje);
+        try { await refrescarLista(); }
+        catch (error) { mostrarAviso('Menú guardado. Recarga la página para actualizar la lista.'); }
+      } catch (error) {
+        mostrarAviso(error.message, 'danger');
+      } finally {
+        botonGuardar.disabled = false;
+      }
+    });
+
+    listado.addEventListener('submit', async evento => {
+      const formulario = evento.target.closest('.form-estado');
+      if (!formulario) return;
+      evento.preventDefault();
+      const boton = formulario.querySelector('button');
+      if (boton.disabled) return;
+      boton.disabled = true;
+      try {
+        const resultado = await enviar(formulario.action, new URLSearchParams());
+        mostrarAviso(resultado.mensaje);
+        try { await refrescarLista(); }
+        catch (error) { mostrarAviso('Estado actualizado. Recarga la página para ver los cambios.'); }
+      } catch (error) {
+        mostrarAviso(error.message, 'danger');
+      } finally {
+        boton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

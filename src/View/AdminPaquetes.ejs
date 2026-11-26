@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Administración de paquetes | HelpingBee</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/Avisos.css">
+
+    <style>
+
+        :root {
+            --morado: #9062db;
+            --morado-oscuro: #7546c8;
+            --morado-claro: #f0e8fc;
+        }
+
+        body {
+            background: #f8f6fc;
+            color: #303046;
+        }
+
+        .navbar {
+            background: var(--morado);
+        }
+
+        .btn-morado {
+            background: var(--morado);
+            color: white;
+            border: none;
+        }
+
+        .btn-morado:hover {
+            background: var(--morado-oscuro);
+            color: white;
+        }
+
+        .btn-editar {
+            background: var(--morado-claro);
+            color: var(--morado-oscuro);
+        }
+
+        .btn-editar:hover {
+            background: #e0d0fa;
+            color: var(--morado-oscuro);
+        }
+
+        .card-paquete {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,.08);
+            transition: transform .2s ease;
+        }
+
+        .card-paquete:hover {
+            transform: translateY(-3px);
+        }
+
+        .portada-paquete {
+            height: 230px;
+            position: relative;
+            background: #eee5fc;
+        }
+
+        .imagen-paquete {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sin-imagen {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--morado);
+            font-size: 4rem;
+        }
+
+        .estado-paquete {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        .tipo-paquete {
+            background: var(--morado-claro);
+            color: var(--morado-oscuro);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: .85rem;
+            font-weight: 600;
+        }
+
+        .precio-paquete {
+            font-size: 1.7rem;
+            font-weight: 750;
+            color: var(--morado-oscuro);
+        }
+
+        .descripcion-paquete {
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+        }
+
+        .servicios-paquete {
+            background: #f8f6fc;
+            padding: 16px;
+            border-radius: 14px;
+        }
+
+        .servicios-paquete i {
+            color: var(--morado);
+        }
+
+        .servicio {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .servicio i {
+            font-size: 1.2rem;
+        }
+
+        .seccion-formulario {
+            border: 1px solid #e7ddf5;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 20px;
+            min-width: 0;
+        }
+
+        .titulo-seccion {
+            color: var(--morado-oscuro);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .opcion-servicio {
+            background: #faf7ff;
+            border: 1px solid #eee5fc;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .lista-servicios {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .foto-servicio {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .form-label {
+            font-weight: 600;
+        }
+
+        .form-check-input:checked {
+            background: var(--morado);
+            border-color: var(--morado);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--morado);
+            box-shadow: 0 0 0 .2rem rgba(144,98,219,.15);
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: var(--morado);
+            color: white;
+        }
+
+        .formulario-paquete {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .imagen-edicion {
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 10px;
+            background: #f0ecf8;
+        }
+
+        .zona-imagen {
+            border: 2px dashed #d6c4f3;
+            border-radius: 12px;
+            padding: 20px;
+            background: #faf7ff;
+        }
+
+        .nota-eleccion {
+            background: #f0e8fc;
+            color: #654398;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: .88rem;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <%
+
+        const moneda = valor =>
+            Number(valor || 0).toLocaleString('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            });
+
+    %>
+
+    <!-- =====================================
+         NAVEGACIÓN
+    ====================================== -->
+
+    <nav class="navbar navbar-dark">
+
+        <div class="container">
+
+            <a href="/rentas/eventos"
+               class="navbar-brand fw-bold">
+
+                <i class="bi bi-stars me-2"></i>
+                HelpingBee
+
+            </a>
+
+            <a href="/rentas/eventos"
+               class="btn btn-outline-light btn-sm">
+
+                <i class="bi bi-arrow-left me-2"></i>
+                Regresar a eventos
+
+            </a>
+
+        </div>
+
+    </nav>
+
+    <!-- =====================================
+         CONTENIDO PRINCIPAL
+    ====================================== -->
+
+    <main class="container py-5">
+
+        <div class="d-flex justify-content-between
+                    align-items-center flex-wrap gap-3 mb-4">
+
+            <div>
+
+                <h1 class="fw-bold">
+
+                    <i class="bi bi-gift me-2"
+                       style="color: #9062db;"></i>
+
+                    Administración de paquetes
+
+                </h1>
+
+                <p class="text-muted mb-0">
+
+                    Configura los beneficios incluidos
+                    en cada paquete.
+
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-morado px-4 py-2"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCrearPaquete">
+
+                <i class="bi bi-plus-lg me-2"></i>
+                Nuevo paquete
+
+            </button>
+
+        </div>
+
+        <!-- BUSCADOR -->
+
+        <form action="/rentas/paquetes"
+              method="GET"
+              class="mb-4">
+
+            <div class="input-group">
+
+                <span class="input-group-text bg-white">
+
+                    <i class="bi bi-search"></i>
+
+                </span>
+
+                <input
+                    type="search"
+                    name="buscar"
+                    class="form-control"
+                    placeholder="Buscar por nombre o tipo..."
+                    value="<%= busqueda %>">
+
+                <button class="btn btn-morado"
+                        type="submit">
+
+                    Buscar
+
+                </button>
+
+                <% if (busqueda) { %>
+
+                    <a href="/rentas/paquetes"
+                       class="btn btn-outline-secondary">
+
+                        Limpiar
+
+                    </a>
+
+                <% } %>
+
+            </div>
+
+        </form>
+
+        <!-- =====================================
+             TARJETAS DE PAQUETES
+        ====================================== -->
+
+        <div class="row g-4">
+
+            <% paquetes.forEach(paquete => { %>
+
+                <%
+
+                    const tipo =
+                        paquete.tipo.toLowerCase().trim();
+
+                    const activo =
+                        Number(paquete.activo) === 1;
+
+                %>
+
+                <div class="col-md-6 col-xl-4">
+
+                    <article class="card card-paquete h-100">
+
+                        <!-- PORTADA -->
+
+                        <div class="portada-paquete">
+
+                            <% if (paquete.imagen_url) { %>
+
+                                <img
+                                    src="<%= paquete.imagen_url %>"
+                                    class="imagen-paquete"
+                                    alt="<%= paquete.nombre %>"
+                                    loading="lazy">
+
+                            <% } else { %>
+
+                                <div class="sin-imagen">
+
+                                    <i class="bi bi-gift"></i>
+
+                                </div>
+
+                            <% } %>
+
+                            <span class="badge estado-paquete rounded-pill
+                                <%= activo
+                                    ? 'text-bg-success'
+                                    : 'text-bg-secondary' %>">
+
+                                <%= activo
+                                    ? 'Activo'
+                                    : 'Inactivo' %>
+
+                            </span>
+
+                        </div>
+
+                        <div class="card-body d-flex
+                                    flex-column gap-3">
+
+                            <div>
+
+                                <span class="tipo-paquete">
+
+                                    <%= paquete.tipo %>
+
+                                </span>
+
+                            </div>
+
+                            <h3 class="h5 fw-bold mb-0">
+
+                                <%= paquete.nombre %>
+
+                            </h3>
+
+                            <p class="small text-muted mb-0
+                                      descripcion-paquete">
+
+                                <%= paquete.descripcion ||
+                                    'Sin descripción.' %>
+
+                            </p>
+
+                            <!-- PRECIO -->
+
+                            <div>
+
+                                <div class="precio-paquete">
+
+                                    <%= moneda(
+                                        paquete.precio_adicional
+                                    ) %>
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    Precio adicional del paquete
+
+                                </small>
+
+                            </div>
+
+                            <!-- INVITADOS -->
+
+                            <div class="small">
+
+                                <i class="bi bi-people me-2"></i>
+
+                                Invitados:
+
+                                <strong>
+
+                                    <%= paquete.min_invitados %>
+
+                                    -
+
+                                    <%= paquete.max_invitados ??
+                                        'Según capacidad' %>
+
+                                </strong>
+
+                            </div>
+
+                            <!-- SERVICIOS INCLUIDOS -->
+
+                            <div class="servicios-paquete">
+
+                                <h6 class="fw-bold mb-3">
+
+                                    Servicios del paquete
+
+                                </h6>
+
+                                <!-- SALONES -->
+
+                                <div class="servicio">
+
+                                    <i class="bi bi-house-door"></i>
+
+                                    <div class="small">
+
+                                        <strong>
+                                            Salones a elegir
+                                        </strong>
+
+                                        <% paquete.salones.forEach(s => { %>
+
+                                            <div class="text-muted">
+
+                                                <%= s.nombre %>
+
+                                            </div>
+
+                                        <% }); %>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- INFLABLE -->
+
+                                <div class="servicio">
+
+                                    <i class="bi bi-balloon"></i>
+
+                                    <div class="small">
+
+                                        <strong>
+                                            Inflable a elegir
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- PAQUETE PREPARADO -->
+
+                                <% if (tipo === 'preparado') { %>
+
+                                    <!-- COMIDA -->
+
+                                    <div class="servicio">
+
+                                        <i class="bi bi-fork-knife"></i>
+
+                                        <div class="small">
+
+                                            <strong>
+
+                                                <%= paquete.porciones_incluidas %>
+                                                porciones de comida
+
+                                            </strong>
+
+                                            <div class="text-muted">
+
+                                                Menú y platillos a elegir
+
+                                            </div>
+
+                                            <div class="text-muted">
+
+                                                Valor cubierto por porción:
+
+                                                <%= moneda(
+                                                    paquete.valor_porcion_incluida
+                                                ) %>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <!-- MANTELES -->
+
+                                    <div class="servicio">
+
+                                        <i class="bi bi-palette"></i>
+
+                                        <div class="small">
+
+                                            <strong>
+
+                                                <%= paquete.manteles_incluidos %>
+                                                manteles
+
+                                            </strong>
+
+                                            <div class="text-muted">
+
+                                                Colores a elegir
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <!-- SONIDO -->
+
+                                    <% paquete.sonidos.forEach(s => { %>
+
+                                        <div class="servicio">
+
+                                            <i class="bi bi-speaker"></i>
+
+                                            <div class="small">
+
+                                                <%= s.cantidad %> ×
+                                                <%= s.nombre %>
+
+                                            </div>
+
+                                        </div>
+
+                                    <% }); %>
+
+                                    <!-- MESEROS -->
+
+                                    <% if (
+                                        Number(paquete.cantidad_meseros) > 0
+                                    ) { %>
+
+                                        <div class="servicio">
+
+                                            <i class="bi bi-person-badge"></i>
+
+                                            <div class="small">
+
+                                                <%= paquete.cantidad_meseros %>
+                                                meseros incluidos
+
+                                            </div>
+
+                                        </div>
+
+                                    <% } %>
+
+                                    <!-- PAQUETES SIN CONFIGURAR -->
+
+                                    <% if (
+                                        Number(paquete.porciones_incluidas) < 1 ||
+                                        Number(paquete.manteles_incluidos) < 1 ||
+                                        Number(paquete.valor_porcion_incluida) <= 0
+                                    ) { %>
+
+                                        <div class="alert alert-warning
+                                                    small mb-0">
+
+                                            Edita este paquete para
+                                            configurar las cantidades
+                                            y el valor por porción.
+
+                                        </div>
+
+                                    <% } %>
+
+                                <% } %>
+
+                                <!-- PAQUETE PERSONALIZADO -->
+
+                                <% if (tipo === 'personalizado') { %>
+
+                                    <div class="nota-eleccion">
+
+                                        El cliente podrá elegir:
+
+                                        <ul class="mb-0 mt-2 ps-3">
+
+                                            <li>Comida y cantidades.</li>
+                                            <li>Manteles y colores.</li>
+                                            <li>Equipo de sonido.</li>
+                                            <li>Servicio de meseros.</li>
+
+                                        </ul>
+
+                                    </div>
+
+                                <% } %>
+
+                                <!-- PAQUETE SENCILLO -->
+
+                                <% if (tipo === 'sencillo') { %>
+
+                                    <div class="small text-muted">
+
+                                        Sin servicios adicionales incluidos.
+
+                                    </div>
+
+                                <% } %>
+
+                            </div>
+
+                            <!-- BOTONES -->
+
+                            <div class="mt-auto">
+
+                                <hr>
+
+                                <div class="d-flex gap-2">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-editar flex-fill"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEditarPaquete<%= paquete.id %>">
+
+                                        <i class="bi bi-pencil me-1"></i>
+                                        Editar
+
+                                    </button>
+
+                                    <form
+                                        action="/rentas/paquetes/estado/<%= paquete.id %>"
+                                        method="POST"
+                                        class="flex-fill">
+
+                                        <input
+                                            type="hidden"
+                                            name="activo"
+                                            value="<%= activo ? 0 : 1 %>">
+
+                                        <button
+                                            type="submit"
+                                            class="btn w-100
+                                            <%= activo
+                                                ? 'btn-outline-danger'
+                                                : 'btn-outline-success' %>">
+
+                                            <%= activo
+                                                ? 'Desactivar'
+                                                : 'Activar' %>
+
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            <% }); %>
+
+            <% if (paquetes.length === 0) { %>
+
+                <div class="col-12 text-center py-5">
+
+                    <i class="bi bi-gift display-3"
+                       style="color: #9062db;"></i>
+
+                    <h4 class="mt-3">
+
+                        No hay paquetes para mostrar
+
+                    </h4>
+
+                    <p class="text-muted">
+
+                        Registra tu primer paquete.
+
+                    </p>
+
+                </div>
+
+            <% } %>
+
+        </div>
+
+    </main>
+
+    <!-- =====================================
+         MODALES DE CREACIÓN Y EDICIÓN
+    ====================================== -->
+
+    <% [null, ...paquetes].forEach(paquete => { %>
+
+        <%
+
+            const editando = paquete !== null;
+
+            const modalId = editando
+                ? 'modalEditarPaquete' + paquete.id
+                : 'modalCrearPaquete';
+
+            const accion = editando
+                ? '/rentas/paquetes/editar/' + paquete.id
+                : '/rentas/paquetes/crear';
+
+            const salonesElegidos = new Set(
+
+                editando
+                    ? paquete.salones.map(
+                        s => Number(s.salon_id)
+                    )
+                    : []
+
+            );
+
+            const sonidosElegidos = new Map(
+
+                editando
+                    ? paquete.sonidos.map(
+                        s => [
+                            Number(s.sonido_id),
+                            s.cantidad
+                        ]
+                    )
+                    : []
+
+            );
+
+        %>
+
+        <div class="modal fade"
+             id="<%= modalId %>"
+             tabindex="-1"
+             aria-hidden="true"
+             aria-labelledby="<%= modalId %>Titulo">
+
+            <div class="modal-dialog modal-xl
+                        modal-dialog-centered
+                        modal-dialog-scrollable">
+
+                <div class="modal-content">
+
+                    <div class="modal-header">
+
+                        <h2 class="modal-title fs-5"
+                            id="<%= modalId %>Titulo">
+
+                            <i class="bi bi-gift me-2"></i>
+
+                            <%= editando
+                                ? 'Editar paquete'
+                                : 'Registrar paquete' %>
+
+                        </h2>
+
+                        <button
+                            type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"
+                            aria-label="Cerrar">
+
+                        </button>
+
+                    </div>
+
+                    <form
+                        action="<%= accion %>"
+                        method="POST"
+                        enctype="multipart/form-data"
+                        class="formulario-paquete">
+
+                        <div class="modal-body p-4">
+
+                            <!-- INFORMACIÓN GENERAL -->
+
+                            <div class="seccion-formulario">
+
+                                <h5 class="titulo-seccion">
+
+                                    Información general
+
+                                </h5>
+
+                                <div class="row g-3 mb-3">
+
+                                    <div class="col-md-6">
+
+                                        <label class="form-label">
+
+                                            Nombre
+
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="nombre"
+                                            class="form-control"
+                                            maxlength="120"
+                                            value="<%= editando
+                                                ? paquete.nombre
+                                                : '' %>"
+                                            required>
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
+                                        <label class="form-label">
+
+                                            Tipo de paquete
+
+                                        </label>
+
+                                        <select
+                                            name="tipo_paquete_id"
+                                            class="form-select selector-tipo"
+                                            required>
+
+                                            <option value="">
+
+                                                Selecciona el tipo
+
+                                            </option>
+
+                                            <% tipos.forEach(t => { %>
+
+                                                <option
+                                                    value="<%= t.id %>"
+                                                    data-tipo="<%= t.nombre.toLowerCase().trim() %>"
+                                                    <%= editando &&
+                                                        Number(paquete.tipo_paquete_id) === Number(t.id)
+                                                        ? 'selected'
+                                                        : '' %>>
+
+                                                    <%= t.nombre %>
+
+                                                </option>
+
+                                            <% }); %>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="mb-3">
+
+                                    <label class="form-label">
+
+                                        Descripción
+
+                                    </label>
+
+                                    <textarea
+                                        name="descripcion"
+                                        class="form-control"
+                                        rows="3"
+                                    ><%= editando
+                                        ? (paquete.descripcion || '')
+                                        : '' %></textarea>
+
+                                </div>
+
+                                <div class="row g-3">
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label">
+
+                                            Mínimo de invitados
+
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="min_invitados"
+                                            class="form-control"
+                                            min="1"
+                                            step="1"
+                                            value="<%= editando
+                                                ? paquete.min_invitados
+                                                : 1 %>"
+                                            required>
+
+                                    </div>
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label">
+
+                                            Máximo de invitados
+
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="max_invitados"
+                                            class="form-control"
+                                            min="1"
+                                            step="1"
+                                            placeholder="Según capacidad"
+                                            value="<%= editando
+                                                ? (paquete.max_invitados ?? '')
+                                                : '' %>">
+
+                                    </div>
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label">
+
+                                            Precio adicional ($)
+
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="precio_adicional"
+                                            class="form-control"
+                                            min="0"
+                                            max="9999999999.99"
+                                            step="0.01"
+                                            value="<%= editando
+                                                ? paquete.precio_adicional
+                                                : 0 %>"
+                                            required>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- =====================================
+                                 SALONES COMPATIBLES
+                            ====================================== -->
+
+                            <div class="seccion-formulario">
+
+                                <h5 class="titulo-seccion">
+
+                                    <i class="bi bi-house-door me-2"></i>
+
+                                    Salones compatibles
+
+                                </h5>
+
+                                <p class="small text-muted">
+
+                                    El cliente elegirá uno de los
+                                    salones compatibles.
+
+                                </p>
+
+                                <div class="lista-servicios">
+
+                                    <% salones.forEach(salon => { %>
+
+                                        <%
+
+                                            const elegido =
+                                                salonesElegidos.has(
+                                                    Number(salon.id)
+                                                );
+
+                                            const disponible =
+                                                Number(salon.activo) === 1;
+
+                                        %>
+
+                                        <% if (disponible || elegido) { %>
+
+                                            <label class="opcion-servicio
+                                                          d-flex gap-3
+                                                          align-items-center">
+
+                                                <input
+                                                    type="checkbox"
+                                                    name="salones[]"
+                                                    value="<%= salon.id %>"
+                                                    class="form-check-input"
+                                                    <%= elegido
+                                                        ? 'checked'
+                                                        : '' %>>
+
+                                                <div>
+
+                                                    <strong>
+
+                                                        <%= salon.nombre %>
+
+                                                    </strong>
+
+                                                    <div class="small text-muted">
+
+                                                        <%= salon.capacidad %>
+                                                        invitados
+
+                                                        ·
+
+                                                        <%= moneda(
+                                                            salon.tarifa_base
+                                                        ) %>
+
+                                                    </div>
+
+                                                    <% if (!disponible) { %>
+
+                                                        <small class="text-danger">
+
+                                                            Inactivo.
+                                                            Desmarca para guardar.
+
+                                                        </small>
+
+                                                    <% } %>
+
+                                                </div>
+
+                                            </label>
+
+                                        <% } %>
+
+                                    <% }); %>
+
+                                </div>
+
+                                <% if (!salones.some(
+                                    s => Number(s.activo) === 1
+                                )) { %>
+
+                                    <p class="text-danger small">
+
+                                        No hay salones activos.
+
+                                    </p>
+
+                                <% } %>
+
+                                <div class="nota-eleccion mt-2">
+
+                                    <i class="bi bi-balloon me-2"></i>
+
+                                    El inflable se seleccionará
+                                    durante la reservación.
+
+                                </div>
+
+                            </div>
+
+                            <!-- INFORMACIÓN DEL TIPO -->
+
+                            <div class="nota-eleccion
+                                        informacion-tipo mb-3">
+
+                                Selecciona el tipo de paquete.
+
+                            </div>
+
+                            <!-- =====================================
+                                 SERVICIOS DEL PREPARADO
+                            ====================================== -->
+
+                            <fieldset
+                                class="extras-paquete border-0 p-0"
+                                hidden
+                                disabled>
+
+                                <!-- COMIDA -->
+
+                                <div class="seccion-formulario">
+
+                                    <h5 class="titulo-seccion">
+
+                                        <i class="bi bi-fork-knife me-2"></i>
+
+                                        Comida incluida
+
+                                    </h5>
+
+                                    <div class="row g-3">
+
+                                        <!-- CANTIDAD DE PLATILLOS -->
+
+                                        <div class="col-md-6">
+
+                                            <label class="form-label">
+
+                                                Porciones incluidas
+
+                                            </label>
+
+                                            <input
+                                                type="number"
+                                                name="porciones_incluidas"
+                                                class="form-control"
+                                                min="1"
+                                                max="2147483647"
+                                                step="1"
+                                                value="<%= editando
+                                                    ? (paquete.porciones_incluidas || 1)
+                                                    : 1 %>"
+                                                required>
+
+                                        </div>
+
+                                        <!-- VALOR MONETARIO -->
+
+                                        <div class="col-md-6">
+
+                                            <label class="form-label">
+
+                                                Valor incluido por porción ($)
+
+                                            </label>
+
+                                            <input
+                                                type="number"
+                                                name="valor_porcion_incluida"
+                                                class="form-control"
+                                                min="0.01"
+                                                max="9999999999.99"
+                                                step="0.01"
+                                                value="<%= editando &&
+                                                    Number(paquete.valor_porcion_incluida) > 0
+                                                    ? paquete.valor_porcion_incluida
+                                                    : '' %>"
+                                                placeholder="Ej. 80.00"
+                                                required>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="nota-eleccion mt-3">
+
+                                        <i class="bi bi-info-circle me-2"></i>
+
+                                        El cliente elegirá los platillos
+                                        de los menús vigentes para
+                                        la fecha de su evento.
+
+                                        Si el platillo supera el valor
+                                        incluido, pagará la diferencia.
+
+                                    </div>
+
+                                </div>
+
+                                <!-- =====================================
+                                     MANTELES
+                                ====================================== -->
+
+                                <div class="seccion-formulario">
+
+                                    <h5 class="titulo-seccion">
+
+                                        <i class="bi bi-palette me-2"></i>
+
+                                        Manteles incluidos
+
+                                    </h5>
+
+                                    <label class="form-label">
+
+                                        Cantidad de manteles
+
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        name="manteles_incluidos"
+                                        class="form-control"
+                                        min="1"
+                                        step="1"
+                                        value="<%= editando
+                                            ? (paquete.manteles_incluidos || 1)
+                                            : 1 %>"
+                                        required>
+
+                                    <div class="nota-eleccion mt-3">
+
+                                        <i class="bi bi-info-circle me-2"></i>
+
+                                        Los colores, formas y medidas
+                                        se elegirán durante
+                                        la reservación.
+
+                                    </div>
+
+                                </div>
+
+                                <!-- =====================================
+                                     EQUIPO DE SONIDO
+                                ====================================== -->
+
+                                <div class="seccion-formulario">
+
+                                    <h5 class="titulo-seccion">
+
+                                        <i class="bi bi-speaker me-2"></i>
+
+                                        Equipo de sonido
+
+                                    </h5>
+
+                                    <p class="small text-muted">
+
+                                        Selecciona los equipos incluidos.
+
+                                    </p>
+
+                                    <div class="lista-servicios">
+
+                                        <% sonidos.forEach(sonido => { %>
+
+                                            <%
+
+                                                const elegido =
+                                                    sonidosElegidos.has(
+                                                        Number(sonido.id)
+                                                    );
+
+                                                const cantidad =
+                                                    sonidosElegidos.get(
+                                                        Number(sonido.id)
+                                                    ) || 1;
+
+                                                const disponible =
+                                                    Number(sonido.activo) === 1 &&
+                                                    Number(sonido.stock_total) > 0;
+
+                                            %>
+
+                                            <% if (disponible || elegido) { %>
+
+                                                <div class="opcion-servicio">
+
+                                                    <div class="d-flex
+                                                                align-items-center
+                                                                gap-3 flex-wrap">
+
+                                                        <label class="d-flex
+                                                                      align-items-center
+                                                                      gap-2 flex-grow-1">
+
+                                                            <input
+                                                                type="checkbox"
+                                                                class="form-check-input seleccionar-sonido"
+                                                                <%= elegido
+                                                                    ? 'checked'
+                                                                    : '' %>>
+
+                                                            <% if (sonido.imagen_url) { %>
+
+                                                                <img
+                                                                    src="<%= sonido.imagen_url %>"
+                                                                    class="foto-servicio"
+                                                                    alt="">
+
+                                                            <% } %>
+
+                                                            <div>
+
+                                                                <strong>
+
+                                                                    <%= sonido.nombre %>
+
+                                                                </strong>
+
+                                                                <div class="small text-muted">
+
+                                                                    Existencias:
+
+                                                                    <%= sonido.stock_total %>
+
+                                                                </div>
+
+                                                                <% if (!disponible) { %>
+
+                                                                    <small class="text-danger">
+
+                                                                        No disponible.
+                                                                        Desmarca para guardar.
+
+                                                                    </small>
+
+                                                                <% } %>
+
+                                                            </div>
+
+                                                        </label>
+
+                                                        <div style="width: 110px;">
+
+                                                            <label class="form-label small">
+
+                                                                Cantidad
+
+                                                            </label>
+
+                                                            <input
+                                                                type="number"
+                                                                name="sonidos[p_<%= sonido.id %>]"
+                                                                class="form-control cantidad-sonido"
+                                                                min="1"
+                                                                max="<%= sonido.stock_total %>"
+                                                                step="1"
+                                                                value="<%= cantidad %>"
+                                                                <%= elegido
+                                                                    ? ''
+                                                                    : 'disabled' %>
+                                                                required>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            <% } %>
+
+                                        <% }); %>
+
+                                    </div>
+
+                                    <% if (!sonidos.some(
+                                        s => Number(s.activo) === 1 &&
+                                             Number(s.stock_total) > 0
+                                    )) { %>
+
+                                        <p class="text-muted small">
+
+                                            No hay equipos disponibles.
+
+                                        </p>
+
+                                    <% } %>
+
+                                </div>
+
+                                <!-- =====================================
+                                     MESEROS
+                                ====================================== -->
+
+                                <div class="seccion-formulario">
+
+                                    <h5 class="titulo-seccion">
+
+                                        <i class="bi bi-person-badge me-2"></i>
+
+                                        Servicio de meseros
+
+                                    </h5>
+
+                                    <label class="form-label">
+
+                                        Meseros incluidos
+
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        name="cantidad_meseros"
+                                        class="form-control"
+                                        min="0"
+                                        step="1"
+                                        value="<%= editando
+                                            ? (paquete.cantidad_meseros || 0)
+                                            : 0 %>"
+                                        required>
+
+                                </div>
+
+                            </fieldset>
+
+                            <!-- =====================================
+                                 FOTOGRAFÍA
+                            ====================================== -->
+
+                            <div class="seccion-formulario">
+
+                                <h5 class="titulo-seccion">
+
+                                    <i class="bi bi-image me-2"></i>
+
+                                    Fotografía del paquete
+
+                                </h5>
+
+                                <% if (
+                                    editando &&
+                                    paquete.imagen_url
+                                ) { %>
+
+                                    <img
+                                        src="<%= paquete.imagen_url %>"
+                                        class="imagen-edicion mb-3"
+                                        alt="<%= paquete.nombre %>">
+
+                                <% } %>
+
+                                <div class="zona-imagen">
+
+                                    <input
+                                        type="file"
+                                        name="imagen"
+                                        class="form-control"
+                                        accept="image/jpeg,image/png,image/webp">
+
+                                    <div class="form-text">
+
+                                        JPG, PNG o WEBP.
+                                        Máximo 5 MB.
+
+                                        <% if (editando) { %>
+
+                                            Deja vacío para conservar
+                                            la fotografía actual.
+
+                                        <% } %>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- BOTONES DEL MODAL -->
+
+                        <div class="modal-footer">
+
+                            <% if (
+                                editando &&
+                                paquete.imagen_url
+                            ) { %>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-danger me-auto"
+                                    form="eliminarImagenPaquete<%= paquete.id %>">
+
+                                    <i class="bi bi-trash me-1"></i>
+
+                                    Eliminar foto
+
+                                </button>
+
+                            <% } %>
+
+                            <button
+                                type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+
+                                Cancelar
+
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="btn btn-morado">
+
+                                <i class="bi bi-check-lg me-1"></i>
+
+                                <%= editando
+                                    ? 'Guardar cambios'
+                                    : 'Registrar paquete' %>
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                    <!-- FORMULARIO ELIMINAR IMAGEN -->
+
+                    <% if (
+                        editando &&
+                        paquete.imagen_url
+                    ) { %>
+
+                        <form
+                            id="eliminarImagenPaquete<%= paquete.id %>"
+                            action="/rentas/paquetes/<%= paquete.id %>/imagen/eliminar"
+                            method="POST"
+                            onsubmit="return confirm('¿Eliminar fotografía?');">
+
+                        </form>
+
+                    <% } %>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    <% }); %>
+
+    <!-- =====================================
+         AVISOS KAWAII
+    ====================================== -->
+
+    <%- include('partials/Aviso') %>
+
+    <footer class="text-center text-muted py-4">
+
+        HelpingBee | Administración de eventos
+
+    </footer>
+
+    <!-- BOOTSTRAP -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+
+    </script>
+
+    <!-- =====================================
+         JAVASCRIPT
+    ====================================== -->
+
+    <script>
+
+        document.querySelectorAll(
+            '.formulario-paquete'
+        ).forEach(formulario => {
+
+            const selector = formulario.querySelector(
+                '.selector-tipo'
+            );
+
+            const extras = formulario.querySelector(
+                '.extras-paquete'
+            );
+
+            const informacion = formulario.querySelector(
+                '.informacion-tipo'
+            );
+
+            // CAMBIAR TIPO DE PAQUETE
+
+            function actualizarTipo() {
+
+                const tipo =
+                    selector.selectedOptions[0]?.dataset.tipo;
+
+                const preparado = tipo === 'preparado';
+
+                extras.hidden = !preparado;
+                extras.disabled = !preparado;
+
+                const mensajes = {
+
+                    sencillo:
+                        'Incluye el salón y el inflable.',
+
+                    preparado:
+                        'Establece las cantidades incluidas. El cliente elegirá sus platillos y colores.',
+
+                    personalizado:
+                        'El cliente decidirá los servicios y cantidades durante la reservación.'
+
+                };
+
+                informacion.textContent =
+                    mensajes[tipo] ||
+                    'Selecciona el tipo de paquete.';
+            }
+
+            selector.addEventListener(
+                'change',
+                actualizarTipo
+            );
+
+            actualizarTipo();
+
+            // HABILITAR CANTIDADES DE SONIDO
+
+            formulario.querySelectorAll(
+                '.seleccionar-sonido'
+            ).forEach(checkbox => {
+
+                const opcion = checkbox.closest(
+                    '.opcion-servicio'
+                );
+
+                const cantidad = opcion.querySelector(
+                    '.cantidad-sonido'
+                );
+
+                function actualizarSonido() {
+
+                    cantidad.disabled = !checkbox.checked;
+                }
+
+                checkbox.addEventListener(
+                    'change',
+                    actualizarSonido
+                );
+
+                actualizarSonido();
+
+            });
+
+            // VALIDAR FORMULARIO
+
+            formulario.addEventListener(
+                'submit',
+                evento => {
+
+                    const seleccionados =
+                        formulario.querySelectorAll(
+                            'input[name="salones[]"]:checked'
+                        );
+
+                    if (!seleccionados.length) {
+
+                        evento.preventDefault();
+
+                        alert(
+                            'Selecciona al menos un salón.'
+                        );
+
+                        return;
+                    }
+
+                    const min = formulario.querySelector(
+                        '[name="min_invitados"]'
+                    );
+
+                    const max = formulario.querySelector(
+                        '[name="max_invitados"]'
+                    );
+
+                    if (
+                        max.value !== '' &&
+                        Number(max.value) < Number(min.value)
+                    ) {
+
+                        evento.preventDefault();
+
+                        alert(
+                            'El máximo de invitados no puede ser menor al mínimo.'
+                        );
+
+                        max.focus();
+
+                        return;
+                    }
+
+                    // VALIDAR PAQUETE PREPARADO
+
+                    if (!extras.disabled) {
+
+                        const porciones =
+                            formulario.querySelector(
+                                '[name="porciones_incluidas"]'
+                            );
+
+                        const valor =
+                            formulario.querySelector(
+                                '[name="valor_porcion_incluida"]'
+                            );
+
+                        const manteles =
+                            formulario.querySelector(
+                                '[name="manteles_incluidos"]'
+                            );
+
+                        if (Number(porciones.value) < 1) {
+
+                            evento.preventDefault();
+
+                            alert(
+                                'Ingresa al menos una porción.'
+                            );
+
+                            porciones.focus();
+
+                            return;
+                        }
+
+                        if (Number(valor.value) <= 0) {
+
+                            evento.preventDefault();
+
+                            alert(
+                                'El valor por porción debe ser mayor a cero.'
+                            );
+
+                            valor.focus();
+
+                            return;
+                        }
+
+                        if (Number(manteles.value) < 1) {
+
+                            evento.preventDefault();
+
+                            alert(
+                                'Ingresa al menos un mantel.'
+                            );
+
+                            manteles.focus();
+                        }
+                    }
+
+                }
+            );
+
+        });
+
+    </script>
+
+</body>
+
+</html>

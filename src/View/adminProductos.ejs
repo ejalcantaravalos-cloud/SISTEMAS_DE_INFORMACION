@@ -1,306 +1,391 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Productos y Platillos</title>
-    <link rel="stylesheet" href="/css/MenuStyles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platillos | Administración</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f7fc; color: #232033; }
+    .barra { background: #4e326f; }
+    .barra a { color: #fff; text-decoration: none; }
+    .tarjeta { border: 1px solid #e7e2ef; border-radius: 1rem; box-shadow: 0 5px 18px rgba(50,29,70,.04); }
+    .btn-morado { background: #67438d; color: white; border-color: #67438d; }
+    .btn-morado:hover { background: #543575; color: white; }
+    .miniatura { width: 54px; height: 54px; object-fit: cover; border-radius: .65rem; background: #eee9f5; }
+    .fila-receta { border: 1px solid #e6e1ed; border-radius: .75rem; padding: .85rem; margin-bottom: .65rem; background: #faf9fd; }
+    .text-help { color: #706b7a; font-size: .88rem; }
+    .foto-previa { max-height: 110px; max-width: 180px; object-fit: contain; }
+  </style>
 </head>
+<body>
+  <nav class="barra py-3 mb-4">
+    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <strong><i class="bi bi-egg-fried me-2"></i>Diversion y Eventos· Platillos</strong>
+      <div class="d-flex gap-3 small">
+        <a href="/admin">Panel</a>
+        <a href="/admin/ingredientes">Ingredientes</a>
+        <a href="/admin/menu/categorias">Categorías</a>
+        <a href="/admin/menu/menus">Menús</a>
+        <a href="/menu">Menú público</a>
+      </div>
+    </div>
+  </nav>
 
-<body class="admin-body">
-
-<div class="admin-container">
-
-    <!-- Encabezado -->
-    <div class="admin-header">
-        <h1>Gestión de Platillos y Menús</h1>
-        <span class="admin-badge">
-            Admin: <%= user.email %>
-        </span>
+  <main class="container pb-5">
+    <div class="d-flex justify-content-between flex-wrap gap-3 align-items-center mb-4">
+      <div>
+        <h1 class="h3 fw-bold mb-1">Gestión de platillos</h1>
+      </div>
+      <span class="badge text-bg-light border p-2"><%= productos.length %> platillos</span>
     </div>
 
-    <!-- Barra de herramientas -->
-    <div class="toolbar">
-        <span class="count">
-            <%= productos.length %> platillo(s) registrado(s)
-        </span>
+<!-- ALERTA DE ÉXITO -->
+<% if (ok) { %>
+  <div
+    class="alert alert-success alert-dismissible fade show"
+    role="status"
+  >
+    <i class="bi bi-check-circle-fill me-2"></i>
+    ¡Operación completada!
+    Los cambios se guardaron correctamente.
 
-        <div style="display: flex; gap: 10px;">
-            <a href="/admin/menu/categorias"
-               class="btn-sm btn-outline"
-               style="text-decoration: none;">
-                Ir a Categorías
-            </a>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Cerrar"
+    ></button>
+  </div>
+<% } %>
 
-            <a href="/admin"
-               class="btn-sm btn-outline"
-               style="text-decoration: none;">
-                ← Panel Principal
-            </a>
-        </div>
-    </div>
 
-    <!-- Tabla de platillos -->
-    <div class="panel" style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Platillo</th>
-                    <th>Categoría / Menú</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Estado</th>
-                    <th>Especial</th>
-                    <th style="text-align: right;">Acciones</th>
-                </tr>
-            </thead>
+<!-- ALERTA DE MENÚS -->
+<% if (!menus.length) { %>
+  <div
+    class="alert alert-warning alert-dismissible fade show"
+    role="alert"
+  >
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    Aún no hay menús activos.
+    Puedes crear platillos, pero no aparecerán
+    en el menú público hasta asociarlos a un menú.
 
-            <tbody>
-                <% if (productos.length === 0) { %>
-                    <tr>
-                        <td colspan="8"
-                            style="text-align: center; color: #888; padding: 20px;">
-                            No hay platillos registrados todavía.
-                        </td>
-                    </tr>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Cerrar"
+    ></button>
+  </div>
+<% } %>
 
-                <% } else { %>
+<% if (!ingredientes.length) { %>
+  <div
+    class="alert alert-warning alert-dismissible fade show"
+    role="alert"
+  >
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    No hay ingredientes activos.
 
-                    <% productos.forEach(p => { %>
-                        <tr>
-                            <td>#<%= p.id %></td>
+    Regístralos en
+    <a href="/admin/ingredientes" class="alert-link">
+      Gestión de ingredientes
+    </a>.
 
-                            <td>
-                                <strong><%= p.nombre %></strong>
-                            </td>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Cerrar"
+    ></button>
+  </div>
+<% } %>
 
-                            <td>
-                                <span class="tag tag-admin">
-                                    <%= p.categoria_nombre || 'Sin categoría' %>
-                                </span>
-                            </td>
 
-                            <td>
-                                $<%= Number(p.precio).toFixed(2) %>
-                            </td>
+    <div class="row g-4 align-items-start">
+      <div class="col-lg-5">
+        <section class="card tarjeta sticky-lg-top" style="top:16px; z-index:2;">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="h5 fw-bold mb-0" id="tituloFormulario">Crear platillo</h2>
+              <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="cancelarEdicion">Cancelar edición</button>
+            </div>
 
-                            <td><%= p.stock %></td>
-
-                            <td>
-                                <span class="tag <%= p.activo ? 'tag-admin' : 'tag-cliente' %>">
-                                    <%= p.activo ? 'Activo' : 'Inactivo' %>
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="tag <%= p.especial ? 'tag-especial' : 'tag-no-especial' %>">
-                                    <%= p.especial ? '⭐ Sí' : 'No' %>
-                                </span>
-                            </td>
-
-                            <!-- Botones de acciones -->
-                            <td style="text-align: right;">
-
-                                <div class="actions"
-                                     style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end;">
-
-                                    <!-- Especial -->
-                                    <a href="/admin/menu/productos/especial/<%= p.id %>"
-                                       class="btn-sm btn-outline"
-                                       style="text-decoration: none;"
-                                       title="Cambiar estatus de especial">
-
-                                        <%= p.especial ? '⭐' : ' 🌟' %>
-                                    </a>
-
-                                    <!-- Activar / Desactivar -->
-                                    <a href="/admin/menu/productos/toggle/<%= p.id %>"
-                                       class="btn-sm <%= p.activo ? 'btn-danger' : 'btn-primary' %>"
-                                       style="text-decoration: none;">
-
-                                        <%= p.activo ? 'Desactivar' : 'Activar' %>
-                                    </a>
-
-                                    <!-- EDITAR -->
-                                    <button
-                                        type="button"
-                                        class="btn-sm btn-outline btn-editar-producto"
-
-                                        data-id="<%= p.id %>"
-                                        data-nombre="<%= p.nombre %>"
-                                        data-precio="<%= p.precio %>"
-                                        data-stock="<%= p.stock %>"
-                                        data-categoria="<%= p.categoria_id || '' %>">
-
-                                        ✏️ 
-                                    </button>
-
-                                    <!-- ELIMINAR -->
-                                    <form
-                                        action="/admin/menu/productos/eliminar/<%= p.id %>"
-                                        method="POST"
-                                        enctype="multipart/form-data"
-                                        style="display: inline;"
-                                        onsubmit="return confirm('¿Seguro que deseas eliminar este platillo?');">
-
-                                        <button type="submit"
-                                                class="btn-sm btn-danger">
-                                            🗑️ 
-                                        </button>
-                                    </form>
-
-                                </div>
-                            </td>
-                        </tr>
+            <form method="POST" action="/admin/menu/productos" enctype="multipart/form-data" id="formPlatillo">
+              <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre del platillo *</label>
+                <input class="form-control" id="nombre" name="nombre" maxlength="255" required placeholder="Ej. Hamburguesa clásica">
+              </div>
+              <div class="mb-3">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="2" placeholder="Descripción del menú"></textarea>
+              </div>
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label for="precio_base" class="form-label">Precio de venta ($) *</label>
+                  <input class="form-control" id="precio_base" name="precio_base" type="number" min="0" step="0.01" required>
+                </div>
+                <div class="col-6">
+                  <label for="categoria_id" class="form-label">Categoría</label>
+                  <select class="form-select" id="categoria_id" name="categoria_id">
+                    <option value="">Sin categoría</option>
+                    <% categorias.forEach(c => { %>
+                      <option value="<%= c.id %>"><%= c.nombre %></option>
                     <% }) %>
+                  </select>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="imagen" class="form-label">Fotografía (opcional)</label>
+                <input class="form-control" type="file" id="imagen" name="imagen" accept="image/jpeg,image/png,image/webp">
+                <img id="imagenActual" class="foto-previa mt-2 d-none" alt="Fotografía actual del platillo">
+              </div>
 
-                <% } %>
-            </tbody>
-        </table>
-    </div>
+              <hr>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 class="h6 fw-bold mb-0">Ingredientes de la receta</h3>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="agregarIngrediente" <%= ingredientes.length ? '' : 'disabled' %>>
+                  <i class="bi bi-plus-lg"></i> Añadir
+                </button>
+              </div>
+              <div id="filasIngredientes"></div>
+              <input type="hidden" name="ingredientes_json" id="ingredientes_json">
 
-
-    <!-- Formulario para CREAR o EDITAR -->
-    <div class="panel"
-         id="panelFormulario"
-         style="margin-top: 30px;">
-
-        <h3 id="tituloFormulario"
-            style="margin-bottom: 15px; font-size: 1.1rem; color: #333;">
-
-            Registrar Nuevo Platillo
-        </h3>
-
-        <form
-            id="formProducto"
-            action="/admin/menu/productos/crear"
-            method="POST"
-            enctype="multipart/form-data"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-
-            <!-- Nombre -->
-            <div class="form-group" style="margin: 0;">
-                <label style="font-size: 0.85rem; font-weight: 500;">
-                    Nombre del platillo:
-                </label>
-
-                <input
-                    type="text"
-                    name="nombre"
-                    placeholder="Ej. Hamburguesa Doble"
-                    required
-                    style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
-            </div>
-
-            <!-- Precio -->
-            <div class="form-group" style="margin: 0;">
-                <label style="font-size: 0.85rem; font-weight: 500;">
-                    Precio ($):
-                </label>
-
-                <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    name="precio"
-                    placeholder="120.00"
-                    required
-                    style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
-            </div>
-
-            <!-- Stock -->
-            <div class="form-group" style="margin: 0;">
-                <label style="font-size: 0.85rem; font-weight: 500;">
-                    Stock:
-                </label>
-
-                <input
-                    type="number"
-                    name="stock"
-                    min="0"
-                    value="15"
-                    required
-                    style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
-            </div>
-
-            <!-- Categoría -->
-            <div class="form-group" style="margin: 0;">
-                <label style="font-size: 0.85rem; font-weight: 500;">
-                    Categoría / Menú:
-                </label>
-
-                <select
-                    name="categoria_id"
-                    required
-                    style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
-
-                    <option value="">Seleccione una categoría</option>
-
-                    <% if (categorias && categorias.length > 0) { %>
-                        <% categorias.forEach(cat => { %>
-                            <option value="<%= cat.id %>">
-                                <%= cat.nombre %>
-                            </option>
-                        <% }) %>
-                    <% } %>
-
-                </select>
-            </div>
-
-            <!-- Botones del formulario -->
-            <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-
-                <!-- Fotografía del platillo -->
-                <div class="form-group" style="margin: 0;">
-
-                     <label style="font-size: 0.85rem; font-weight: 500;">
-                        Fotografía del Platillo:
+              <hr>
+              <h3 class="h6 fw-bold">Publicación en menús</h3>
+              <div class="row g-2 mb-3">
+                <% menus.forEach(m => { %>
+                  <div class="col-12">
+                    <label class="form-check">
+                      <input class="form-check-input menu-check" type="checkbox" name="menu_ids" value="<%= m.id %>">
+                      <span class="form-check-label"><%= m.nombre %></span>
                     </label>
+                  </div>
+                <% }) %>
+              </div>
+              <button type="submit" id="guardarPlatillo" class="btn btn-morado w-100" <%= ingredientes.length ? '' : 'disabled' %>>
+                <i class="bi bi-check-circle me-1"></i> Guardar platillo
+              </button>
+            </form>
+          </div>
+        </section>
+      </div>
 
-                    <input
-                        type="file"
-                                 name="imagen"
-                     accept="image/jpeg,image/png,image/webp"
-                  style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;"
-             >
+      <div class="col-lg-7">
+        <section class="card tarjeta">
+          <div class="card-body p-4">
+            <h2 class="h5 fw-bold mb-3">Platillos registrados</h2>
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead><tr><th>Platillo</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                  <% productos.forEach(p => { %>
+                    <tr>
+                      <td>
+                        <div class="d-flex gap-2 align-items-center">
+                          <% if (p.imagen_url) { %>
+                            <img class="miniatura" src="<%= p.imagen_url %>" alt="Imagen del platillo">
+                          <% } else { %>
+                            <div class="miniatura d-grid place-items-center text-center pt-3" aria-hidden="true"></div>
+                          <% } %>
+                          <div>
+                            <strong><%= p.nombre %></strong>
+                            <div class="text-help"><%= p.categoria_nombre || 'Sin categoría' %></div>
+                            <div class="text-help"><%= p.ingredientes.length %> componentes · <%= p.menu_ids.length %> menús</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-nowrap">$<%= Number(p.precio_base).toFixed(2) %></td>
+                      <td>
+                        <% if (Number(p.activo)) { %>
+                          <span class="badge text-bg-success">Activo</span>
+                        <% } else { %>
+                          <span class="badge text-bg-secondary">Inactivo</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <div class="d-flex flex-wrap gap-1">
+                          <button type="button" class="btn btn-sm btn-outline-primary editar-platillo" data-id="<%= p.id %>">Editar</button>
+                          <form method="POST" action="/admin/menu/productos/<%= p.id %>/estado">
+                            <button class="btn btn-sm btn-outline-secondary" type="submit"><%= Number(p.activo) ? 'Desactivar' : 'Activar' %></button>
+                          </form>
+                         
+<form method="POST"
+      action="/admin/menu/productos/<%= p.id %>/destacar">
 
-    <small style="color: #64748b;">
-        JPG, PNG o WebP. Máximo 5 MB.
-        Al editar, deja el campo vacío para conservar la fotografía actual.
-    </small>
+  <button
+    type="submit"
+    class="btn btn-sm <%= Number(p.favorito) === 1
+      ? 'btn-warning'
+      : 'btn-outline-warning' %>"
+    title="<%= Number(p.favorito) === 1
+      ? 'Quitar de favoritos'
+      : 'Marcar como favorito' %>">
 
-</div>
+    <%= Number(p.favorito) === 1
+      ? '★ '
+      : '☆' %>
 
-                <button
-                    type="button"
-                    id="cancelarEdicion"
-                    class="btn-sm btn-outline"
-                    style="padding: 10px 20px; cursor: pointer;"
-                    hidden>
+  </button>
+</form>
 
-                    Cancelar edición
-                </button>
-                
-
-                <button
-                    type="submit"
-                    id="btnGuardarProducto"
-                    class="btn-sm btn-primary"
-                    style="padding: 10px 20px; cursor: pointer;">
-
-                    Guardar Platillo
-                </button>
-
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                  <% if (!productos.length) { %>
+                    <tr><td colspan="4" class="text-center text-secondary py-4">Todavía no has creado platillos.</td></tr>
+                  <% } %>
+                </tbody>
+              </table>
             </div>
-
-        </form>
+          </div>
+        </section>
+      </div>
     </div>
+  </main>
 
-</div>
+<div
+  id="datosVista"
+  class="d-none"
+  data-ingredientes="<%= JSON.stringify(ingredientes) %>"
+  data-productos="<%= JSON.stringify(productos) %>"
+></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const formulario = document.getElementById('formPlatillo');
+    const contenedor = document.getElementById('filasIngredientes');
 
-<script> src="/js/AdminProductos.js"</script>
+    const datosVista = document.getElementById('datosVista');
 
+    const catalogoIngredientes = JSON.parse(
+      datosVista.dataset.ingredientes || '[]'
+    );
+
+    const platillos = JSON.parse(
+      datosVista.dataset.productos || '[]'
+    );
+
+    const escapar = (valor) => String(valor).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+
+    function mostrarExtras(fila) {
+      const esExtra = fila.querySelector('.tipo-ingrediente').value === 'EXTRA';
+      fila.querySelector('.campo-precio-extra').classList.toggle('d-none', !esExtra);
+      fila.querySelector('.campo-max-extra').classList.toggle('d-none', !esExtra);
+    }
+
+    function agregarFila(datos = {}) {
+      const div = document.createElement('div');
+      div.className = 'fila-receta';
+      const opciones = catalogoIngredientes.map(i =>
+        `<option value="${Number(i.id)}">${escapar(i.nombre)} (${escapar(i.unidad)})</option>`
+      ).join('');
+      div.innerHTML = `
+        <div class="row g-2">
+          <div class="col-sm-7">
+            <label class="form-label small">Ingrediente</label>
+            <select class="form-select form-select-sm ingrediente-id" required>${opciones}</select>
+          </div>
+          <div class="col-sm-5">
+            <label class="form-label small">Tipo</label>
+            <select class="form-select form-select-sm tipo-ingrediente">
+              <option value="FIJO">Fijo</option>
+              <option value="REMOVIBLE">Removible</option>
+              <option value="EXTRA">Extra</option>
+            </select>
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label small">Cantidad por porción</label>
+            <input class="form-control form-control-sm cantidad" type="number" min="0.001" step="0.001" required value="1">
+          </div>
+          <div class="col-sm-4 campo-precio-extra d-none">
+            <label class="form-label small">Precio del extra ($)</label>
+            <input class="form-control form-control-sm precio-extra" type="number" min="0" step="0.01" value="0">
+          </div>
+          <div class="col-sm-4 campo-max-extra d-none">
+            <label class="form-label small">Máximo extras</label>
+            <input class="form-control form-control-sm max-extra" type="number" min="1" step="1" value="1">
+          </div>
+          <div class="col-12 text-end">
+            <button type="button" class="btn btn-sm btn-outline-danger quitar-fila">Quitar fila</button>
+          </div>
+        </div>`;
+      contenedor.appendChild(div);
+      div.querySelector('.ingrediente-id').value = String(datos.ingrediente_id || catalogoIngredientes[0]?.id || '');
+      div.querySelector('.tipo-ingrediente').value = datos.tipo || 'FIJO';
+      div.querySelector('.cantidad').value = datos.cantidad_porcion ?? '1';
+      div.querySelector('.precio-extra').value = datos.precio_extra ?? '0';
+      div.querySelector('.max-extra').value = datos.max_porciones_extra ?? '1';
+      div.querySelector('.tipo-ingrediente').addEventListener('change', () => mostrarExtras(div));
+      div.querySelector('.quitar-fila').addEventListener('click', () => div.remove());
+      mostrarExtras(div);
+    }
+
+    function limpiarFormulario() {
+      formulario.reset();
+      formulario.action = '/admin/menu/productos';
+      contenedor.innerHTML = '';
+      document.getElementById('imagenActual').classList.add('d-none');
+      document.getElementById('tituloFormulario').textContent = 'Crear platillo';
+      document.getElementById('cancelarEdicion').classList.add('d-none');
+      document.getElementById('guardarPlatillo').textContent = 'Guardar platillo';
+    }
+
+    document.getElementById('agregarIngrediente').addEventListener('click', () => agregarFila());
+    document.getElementById('cancelarEdicion').addEventListener('click', limpiarFormulario);
+
+    document.querySelectorAll('.editar-platillo').forEach(boton => {
+      boton.addEventListener('click', () => {
+        const platillo = platillos.find(p => Number(p.id) === Number(boton.dataset.id));
+        if (!platillo) return;
+        limpiarFormulario();
+        formulario.action = `/admin/menu/productos/${Number(platillo.id)}/editar`;
+        document.getElementById('nombre').value = platillo.nombre;
+        document.getElementById('descripcion').value = platillo.descripcion || '';
+        document.getElementById('precio_base').value = platillo.precio_base;
+        document.getElementById('categoria_id').value = platillo.categoria_id || '';
+        document.querySelectorAll('.menu-check').forEach(ch => {
+          ch.checked = platillo.menu_ids.map(Number).includes(Number(ch.value));
+        });
+        platillo.ingredientes.forEach(agregarFila);
+        if (platillo.imagen_url) {
+          const img = document.getElementById('imagenActual');
+          img.src = platillo.imagen_url;
+          img.classList.remove('d-none');
+        }
+        document.getElementById('tituloFormulario').textContent = 'Editar platillo';
+        document.getElementById('cancelarEdicion').classList.remove('d-none');
+        document.getElementById('guardarPlatillo').textContent = 'Actualizar platillo';
+        formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    formulario.addEventListener('submit', evento => {
+      const filas = [...contenedor.querySelectorAll('.fila-receta')];
+      if (!filas.length) {
+        evento.preventDefault();
+        alert('Agrega al menos un ingrediente a la receta.');
+        return;
+      }
+      const receta = filas.map(fila => ({
+        ingrediente_id: fila.querySelector('.ingrediente-id').value,
+        tipo: fila.querySelector('.tipo-ingrediente').value,
+        cantidad_porcion: fila.querySelector('.cantidad').value,
+        precio_extra: fila.querySelector('.precio-extra').value,
+        max_porciones_extra: fila.querySelector('.max-extra').value
+      }));
+      const claves = receta.map(fila => `${fila.ingrediente_id}-${fila.tipo}`);
+      if (new Set(claves).size !== claves.length) {
+        evento.preventDefault();
+        alert('Un mismo ingrediente no puede repetirse con el mismo tipo.');
+        return;
+      }
+      document.getElementById('ingredientes_json').value = JSON.stringify(receta);
+    });
+  </script>
 </body>
 </html>

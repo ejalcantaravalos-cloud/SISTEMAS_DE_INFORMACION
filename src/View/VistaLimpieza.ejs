@@ -1,51 +1,246 @@
-
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inicio</title>
-  <link rel="stylesheet" href="/css/styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-    rel="stylesheet">
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Personal de Limpieza | ZABAVA</title>
+
+    <!-- BOOTSTRAP 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        body {
+            background: #f7f8fc;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #425ed9;
+        }
+
+        .titulo-principal {
+            font-weight: 750;
+            color: #303046;
+        }
+
+        .tarjeta-servicio {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 6px 24px rgba(0,0,0,.07);
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
+            height: 100%;
+        }
+
+        .tarjeta-servicio:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 28px rgba(0,0,0,.12);
+        }
+
+        .imagen-servicio {
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 85px;
+        }
+
+        .fondo-inflables {
+            background: #e1f4ff;
+        }
+
+        .fondo-salones {
+            background: #fce5f2;
+        }
+
+        .tarjeta-servicio .card-body {
+            padding: 28px;
+        }
+
+        .boton-servicio {
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .descripcion {
+            min-height: 75px;
+            color: #6c757d;
+        }
+
+        .pie-pagina {
+            color: #858595;
+            font-size: .9rem;
+        }
+    </style>
+
 </head>
 
 <body>
 
-  <div class="card">
 
-    <h1>¡Bienvenido!</h1>
+    <nav class="navbar navbar-expand-lg shadow-sm">
 
-    <p class="subtitle">
-      Qué bueno verte por aquí
-    </p>
+        <div class="container">
 
-    <p class="user-info">
-      Hola,
-      <strong><%= user.nombre %></strong>
+            <a class="navbar-brand fw-bold"
+               href="/Limpieza">
 
-      <span class="user-email">
-        <%= user.email %>
-      </span>
-      tu rol es:
-      <strong><%= user.rol %></strong>
-      Estamos en mantenimiento, gracias por tu espera. Pronto podrás acceder a todas las funciones del sistema.
-    </p>
+               Diversion y Eventos
 
-    <div class="hero-actions">
+            </a>
 
-      <a href="/logout">
-        <button class="btn-secondary">
-          Cerrar sesión
-        </button>
-      </a>
+            <span class="fw-semibold">
+                Personal de limpieza
+            </span>
 
-    </div>
+        </div>
 
-  </div>
+    </nav>
+
+
+    <main class="container py-5">
+
+        <!-- ENCABEZADO -->
+
+        <div class="text-center mb-5">
+
+            <h1 class="titulo-principal mb-3">
+
+                Gestión de limpieza
+
+            </h1>
+
+            <p class="text-muted fs-5">
+
+                Selecciona el área en la que
+                deseas trabajar.
+
+            </p>
+
+        </div>
+
+
+        <div class="row g-4 justify-content-center">
+
+
+            <div class="col-md-6 col-lg-5">
+
+                <div class="card tarjeta-servicio">
+
+                    <div class="imagen-servicio fondo-inflables">
+
+                        🎪
+
+                    </div>
+
+                    <div class="card-body text-center">
+
+                        <h3 class="fw-bold mb-3">
+                            Limpieza de inflables
+
+                        </h3>
+
+                        <p class="descripcion">
+                            Consulta los inflables
+                            utilizados en eventos,
+                            registra su limpieza,
+                            inspecciona su estado y
+                            señala si necesitan
+                            mantenimiento.
+
+                        </p>
+
+                        <span class="badge bg-success mb-4">
+                            Disponible
+
+                        </span>
+
+                        <a
+                            href="/limpieza/inflables"
+                            class="btn btn-primary boton-servicio w-100"
+                        >
+                            Revisar inflables
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6 col-lg-5">
+
+                <div class="card tarjeta-servicio">
+
+                    <div class="imagen-servicio fondo-salones">
+
+                        🏛️
+
+                    </div>
+
+                    <div class="card-body text-center">
+
+                        <h3 class="fw-bold mb-3">
+
+                            Limpieza de salones
+
+                        </h3>
+
+                        <p class="descripcion">
+
+                            Consulta los salones que
+                            requieren limpieza después
+                            de un evento y registra
+                            las actividades de
+                            preparación del espacio.
+
+                        </p>
+
+                        <span class="badge bg-secondary mb-4">
+
+                            Pendiente de implementar
+
+                        </span>
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary boton-servicio w-100"
+                            disabled
+                        >
+
+                            Próximamente
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <p class="text-center pie-pagina mt-5">
+
+            Diversion y Eventos |
+            Sistema de gestión de limpieza
+
+        </p>
+
+    </main>
 
 </body>
 </html>

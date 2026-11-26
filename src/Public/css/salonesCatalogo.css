@@ -1,0 +1,301 @@
+
+        /* TARJETAS DEL CATÁLOGO */
+
+        .card-salon {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, .08);
+            transition: transform .2s ease;
+        }
+
+        .card-salon:hover {
+            transform: translateY(-4px);
+        }
+
+        /* FOTOGRAFÍA INTERACTIVA */
+
+        .imagen-contenedor {
+            display: block;
+            width: 100%;
+            height: 235px;
+            overflow: hidden;
+            background: #f0ecf8;
+            position: relative;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+        }
+
+        .catalogo-foto {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform .3s ease;
+        }
+
+        .imagen-contenedor:hover .catalogo-foto {
+            transform: scale(1.05);
+        }
+
+        .sin-fotografia {
+            display: flex;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+            color: #777;
+        }
+
+        .sin-fotografia i {
+            font-size: 3rem;
+        }
+
+        /* INDICADOR SOBRE LA FOTO */
+
+        .imagen-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .30);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            opacity: 0;
+            transition: opacity .2s ease;
+        }
+
+        .imagen-contenedor:hover .imagen-overlay,
+        .imagen-contenedor:focus-visible .imagen-overlay {
+            opacity: 1;
+        }
+
+        .imagen-overlay i {
+            font-size: 2.5rem;
+        }
+
+        /* TIPO DE SALÓN */
+
+        .tipo-salon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #f8f6fc;
+            color: #5f418f;
+            border-radius: 20px;
+            padding: 7px 14px;
+            font-size: .85rem;
+            font-weight: 600;
+        }
+
+        /* NOMBRE Y PRECIO */
+
+        .nombre-salon {
+            font-weight: 700;
+            color: #303046;
+            overflow-wrap: anywhere;
+        }
+
+        .precio-salon {
+            font-size: 1.3rem;
+            font-weight: 750;
+            color: #7546c8;
+        }
+
+        /* BOTÓN VER DETALLES */
+
+        .btn-detalles {
+            background-color: #9062db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px;
+            font-weight: 600;
+        }
+
+        .btn-detalles:hover,
+        .btn-detalles:focus-visible {
+            background-color: #7546c8;
+            color: white;
+        }
+
+        /* MODALES */
+
+        .modal-content {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background-color: #9062db;
+            color: white;
+        }
+
+        .modal-foto {
+            width: 100%;
+            max-height: 420px;
+            object-fit: contain;
+            background: #f0ecf8;
+            border-radius: 12px;
+        }
+
+        .seccion-detalle {
+            background: #f8f6fc;
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .titulo-detalle {
+            font-size: .95rem;
+            font-weight: 700;
+            color: #5f418f;
+            margin-bottom: 10px;
+        }
+
+        .descripcion-texto {
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+            font-size: .95rem;
+            color: #555;
+        }
+
+        .aviso-disponibilidad {
+            font-size: .88rem;
+            color: #686078;
+        }
+
+        /* RENTA DE VARIOS SALONES */
+
+        .renta-privada {
+            background: #f8f6fc;
+            border: 1px solid #e5daf6;
+            border-radius: 18px;
+            padding: 30px;
+        }
+
+        .renta-privada h3 {
+            color: #5f418f;
+        }
+
+        .renta-privada i {
+            color: #9062db;
+        }
+
+        /* =====================================
+   GALERÍA DE FOTOGRAFÍAS
+====================================== */
+
+.galeria-salon {
+    border-radius: 15px;
+    overflow: hidden;
+    background: #f0ecf8;
+}
+
+.galeria-salon .modal-foto {
+    width: 100%;
+    height: clamp(220px, 50vw, 380px);
+    object-fit: contain;
+    border-radius: 0;
+    background: #f0ecf8;
+}
+
+/* CONTROLES DEL CARRUSEL */
+
+.galeria-salon .carousel-control-prev-icon,
+.galeria-salon .carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, .65);
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    background-size: 50%;
+}
+
+/* CONTADOR DE FOTOGRAFÍAS */
+
+.contador-fotografias {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, .65);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: .85rem;
+}
+
+/* DESCRIPCIÓN SOBRE LA FOTOGRAFÍA */
+
+/* DESCRIPCIÓN SOBRE LA FOTOGRAFÍA */
+
+.descripcion-fotografia {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px 20px 25px;
+    background: rgba(0, 0, 0, .60);
+    color: white;
+    text-align: center;
+    font-size: .9rem;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+}
+
+/* OCULTAR DESCRIPCIÓN DESPUÉS DE 3 SEGUNDOS */
+
+.modal.show .carousel-item.active .descripcion-fotografia {
+    animation: ocultarDescripcion .5s ease-in-out 3s forwards;
+}
+
+/* ANIMACIÓN */
+@keyframes ocultarDescripcion {
+
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+
+}
+
+
+/* MINIATURAS */
+
+.galeria-miniaturas {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 5px;
+}
+
+.btn-miniatura {
+    flex-shrink: 0;
+    width: 95px;
+    height: 70px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f0ecf8;
+    cursor: pointer;
+    transition: border-color .2s ease;
+}
+
+.btn-miniatura img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-miniatura:hover,
+.btn-miniatura:focus-visible {
+    border-color: #9062db;
+}
+

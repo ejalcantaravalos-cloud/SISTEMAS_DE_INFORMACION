@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Catálogo de Salones | ZABAVA</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- CSS compartido -->
+    <link rel="stylesheet" href="/css/InflablesPublico.css">
+      <link rel="stylesheet" href="/css/salonesCatalogo.css">
+</head>
+
+<body>
+
+    <%
+
+        // Formatear precios en pesos mexicanos.
+
+        const formatoPrecio = valor => {
+
+            if (
+                valor == null ||
+                valor === '' ||
+                !Number.isFinite(Number(valor))
+            ) {
+                return 'Por confirmar';
+            }
+
+            return Number(valor).toLocaleString(
+                'es-MX',
+                {
+                    style: 'currency',
+                    currency: 'MXN'
+                }
+            );
+        };
+
+
+        // Formatear dimensiones y superficie.
+
+        const formatoMedida = (valor, unidad = 'm') => {
+
+            if (
+                valor == null ||
+                valor === '' ||
+                !Number.isFinite(Number(valor))
+            ) {
+                return 'Por confirmar';
+            }
+
+            return Number(valor).toLocaleString(
+                'es-MX',
+                {
+                    maximumFractionDigits: 2
+                }
+            ) + ' ' + unidad;
+        };
+
+        const listaSalones = Array.isArray(salones)
+            ? salones
+            : [];
+
+    %>
+
+
+    <!-- =====================================
+         BARRA DE NAVEGACIÓN
+    ====================================== -->
+
+    <nav class="navbar navbar-dark"
+         style="background-color: #9062db;">
+
+        <div class="container">
+
+            <a class="navbar-brand fw-bold" href="/">
+
+                <i class="bi bi-stars me-2"></i>
+
+                ZAVABA
+
+            </a>
+
+            <a href="/"
+               class="btn btn-outline-light btn-sm">
+
+                <i class="bi bi-house me-1"></i>
+
+                Inicio
+
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =====================================
+         PRESENTACIÓN
+    ====================================== -->
+
+    <header class="hero">
+
+        <div class="container">
+
+            <h1 class="display-5 fw-bold">
+
+                Nuestros Salones de Eventos
+
+            </h1>
+
+            <p class="lead mt-3">
+
+                Encuentra el espacio ideal para
+                celebrar tus momentos especiales.
+
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================
+         CATÁLOGO
+    ====================================== -->
+
+    <main class="container py-5">
+
+        <div class="text-center mb-5">
+
+            <h2 class="fw-bold">
+
+                Catálogo de Salones
+
+            </h2>
+
+            <p class="text-muted">
+
+                Selecciona un salón para conocer
+                sus características y condiciones de renta.
+
+            </p>
+
+        </div>
+
+
+        <div class="row g-4">
+
+            <% if (listaSalones.length > 0) { %>
+
+                <% listaSalones.forEach(salon => { %>
+
+                    <div class="col-md-6 col-lg-4">
+
+                        <article class="card card-salon h-100">
+
+                            <!-- FOTOGRAFÍA INTERACTIVA -->
+
+                            <button
+                                type="button"
+                                class="imagen-contenedor"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalSalon<%= salon.id %>"
+                                aria-label="Ver detalles de <%= salon.nombre %>"
+                            >
+
+                                <% if (salon.imagen) { %>
+
+                                    <img
+                                        src="<%= salon.imagen %>"
+                                        class="catalogo-foto"
+                                        alt="Fotografía de <%= salon.nombre %>"
+                                        loading="lazy"
+                                    >
+
+                                <% } else { %>
+
+                                    <span class="sin-fotografia">
+
+                                        <i class="bi bi-image"></i>
+
+                                        <span>
+                                            Sin fotografía disponible
+                                        </span>
+
+                                    </span>
+
+                                <% } %>
+
+
+                                <!-- EFECTO AL PASAR EL CURSOR -->
+
+                                <span class="imagen-overlay"
+                                      aria-hidden="true">
+
+                                    <i class="bi bi-zoom-in"></i>
+
+                                </span>
+
+
+                                <!-- TIPO DE SALÓN -->
+
+                                <% if (salon.tipo_salon) { %>
+
+                                    <span class="tipo-salon">
+
+                                        <%= salon.tipo_salon %>
+
+                                    </span>
+
+                                <% } %>
+
+                            </button>
+
+
+                            <!-- INFORMACIÓN RESUMIDA -->
+
+                            <div class="card-body d-flex flex-column gap-3">
+
+                                <h3 class="h4 nombre-salon mb-0">
+
+                                    <%= salon.nombre %>
+
+                                </h3>
+
+
+                                <!-- CAPACIDAD -->
+
+                                <div class="text-muted">
+
+                                    <i class="bi bi-people me-2"></i>
+
+                                    <% if (salon.capacidad != null) { %>
+
+                                        Hasta <%= salon.capacidad %>
+                                        personas
+
+                                    <% } else { %>
+
+                                        Capacidad por confirmar
+
+                                    <% } %>
+
+                                </div>
+
+
+                                <!-- PRECIO -->
+
+                                <div>
+
+                                    <div class="small text-muted">
+
+                                        Precio de renta
+
+                                    </div>
+
+                                    <div class="precio-salon">
+
+                                        <%= formatoPrecio(
+                                            salon.tarifa_base
+                                        ) %>
+
+                                    </div>
+
+                                    <% if (salon.horas_incluidas != null) { %>
+
+                                        <div class="small text-muted">
+
+                                            <i class="bi bi-clock me-1"></i>
+
+                                            Por
+                                            <%= salon.horas_incluidas %>
+                                            horas de renta
+
+                                        </div>
+
+                                    <% } %>
+
+                                </div>
+
+
+                                <!-- BOTÓN VER DETALLES -->
+
+                                <button
+                                    type="button"
+                                    class="btn btn-detalles w-100 mt-auto"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalSalon<%= salon.id %>"
+                                >
+
+                                    <i class="bi bi-eye me-2"></i>
+
+                                    Ver detalles
+
+                                </button>
+
+                            </div>
+
+                        </article>
+
+                    </div>
+
+                <% }); %>
+
+            <% } else { %>
+
+                <!-- CATÁLOGO VACÍO -->
+
+                <div class="col-12 text-center py-5">
+
+                    <i class="bi bi-info-circle display-4 text-muted"></i>
+
+                    <h4 class="mt-3">
+
+                        No hay salones para mostrar
+
+                    </h4>
+
+                    <p class="text-muted">
+
+                        Próximamente podrás consultar
+                        nuestro catálogo.
+
+                    </p>
+
+                </div>
+
+            <% } %>
+
+        </div>
+
+
+    
+
+
+        <!-- VOLVER AL INICIO -->
+
+        <div class="text-center mt-5">
+
+            <a href="/" class="btn btn-volver">
+
+                <i class="bi bi-arrow-left me-2"></i>
+
+                Volver al Inicio
+
+            </a>
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================
+         MODALES DE INFORMACIÓN
+    ====================================== -->
+
+    <% listaSalones.forEach(salon => { %>
+
+        <div
+            class="modal fade"
+            id="modalSalon<%= salon.id %>"
+            tabindex="-1"
+            aria-labelledby="tituloSalon<%= salon.id %>"
+            aria-hidden="true"
+        >
+
+            <div class="modal-dialog modal-lg
+                        modal-dialog-centered
+                        modal-dialog-scrollable">
+
+                <div class="modal-content">
+
+                    <!-- ENCABEZADO DEL MODAL -->
+
+                    <div class="modal-header">
+
+                        <h2
+                            class="modal-title fs-5 fw-bold"
+                            id="tituloSalon<%= salon.id %>"
+                        >
+
+                            <i class="bi bi-building me-2"></i>
+
+                            <%= salon.nombre %>
+
+                        </h2>
+
+                        <button
+                            type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"
+                            aria-label="Cerrar"
+                        ></button>
+
+                    </div>
+
+
+                    <!-- CONTENIDO DEL MODAL -->
+
+                    <div class="modal-body p-4">
+
+                        <!-- FOTOGRAFÍA AMPLIADA -->
+
+                      <!-- =====================================
+     GALERÍA DE FOTOGRAFÍAS DEL SALÓN
+====================================== -->
+
+<%
+
+    const fotos = Array.isArray(salon.imagenes)
+        ? salon.imagenes
+        : [];
+
+%>
+
+<% if (fotos.length > 0) { %>
+
+    <div
+        id="carruselSalon<%= salon.id %>"
+        class="carousel slide galeria-salon mb-4"
+        data-bs-interval="false"
+    >
+
+        <!-- INDICADORES DEL CARRUSEL -->
+
+        <% if (fotos.length > 1) { %>
+
+            <div class="carousel-indicators">
+
+                <% fotos.forEach((foto, index) => { %>
+
+                    <button
+                        type="button"
+                        data-bs-target="#carruselSalon<%= salon.id %>"
+                        data-bs-slide-to="<%= index %>"
+                        class="<%= index === 0 ? 'active' : '' %>"
+                        aria-current="<%= index === 0 ? 'true' : 'false' %>"
+                        aria-label="Fotografía <%= index + 1 %>"
+                    ></button>
+
+                <% }); %>
+
+            </div>
+
+        <% } %>
+
+
+        <!-- FOTOGRAFÍAS -->
+
+        <div class="carousel-inner">
+
+            <% fotos.forEach((foto, index) => { %>
+
+                <div class="carousel-item
+                    <%= index === 0 ? 'active' : '' %>">
+
+                    <img
+                        src="<%= foto.url %>"
+                        class="modal-foto d-block w-100"
+                        alt="<%= foto.descripcion || salon.nombre %>"
+                        loading="lazy"
+                    >
+
+                    <!-- DESCRIPCIÓN DE LA FOTOGRAFÍA -->
+
+                    <% if (foto.descripcion) { %>
+
+                        <div class="descripcion-fotografia">
+
+                            <%= foto.descripcion %>
+
+                        </div>
+
+                    <% } %>
+
+                    <!-- CONTADOR DE FOTOGRAFÍAS -->
+
+                    <span class="contador-fotografias">
+
+                        <%= index + 1 %> / <%= fotos.length %>
+
+                    </span>
+
+                </div>
+
+            <% }); %>
+
+        </div>
+
+
+        <!-- BOTONES ANTERIOR Y SIGUIENTE -->
+
+        <% if (fotos.length > 1) { %>
+
+            <button
+                class="carousel-control-prev"
+                type="button"
+                data-bs-target="#carruselSalon<%= salon.id %>"
+                data-bs-slide="prev"
+            >
+
+                <span
+                    class="carousel-control-prev-icon"
+                    aria-hidden="true"
+                ></span>
+
+                <span class="visually-hidden">
+                    Anterior
+                </span>
+
+            </button>
+
+
+            <button
+                class="carousel-control-next"
+                type="button"
+                data-bs-target="#carruselSalon<%= salon.id %>"
+                data-bs-slide="next"
+            >
+
+                <span
+                    class="carousel-control-next-icon"
+                    aria-hidden="true"
+                ></span>
+
+                <span class="visually-hidden">
+                    Siguiente
+                </span>
+
+            </button>
+
+        <% } %>
+
+    </div>
+
+
+    <!-- MINIATURAS DE LAS FOTOGRAFÍAS -->
+
+    <% if (fotos.length > 1) { %>
+
+        <div class="galeria-miniaturas mb-4">
+
+            <% fotos.forEach((foto, index) => { %>
+
+                <button
+                    type="button"
+                    class="btn-miniatura"
+                    data-bs-target="#carruselSalon<%= salon.id %>"
+                    data-bs-slide-to="<%= index %>"
+                    aria-label="Ver fotografía <%= index + 1 %>"
+                >
+
+                    <img
+                        src="<%= foto.url %>"
+                        alt="<%= foto.descripcion || salon.nombre %>"
+                        loading="lazy"
+                    >
+
+                </button>
+
+            <% }); %>
+
+        </div>
+
+    <% } %>
+
+
+<% } else if (salon.imagen) { %>
+
+    <img
+        src="<%= salon.imagen %>"
+        class="modal-foto mb-4"
+        alt="<%= salon.nombre %>"
+    >
+
+<% } else { %>
+
+    <div class="sin-fotografia py-5 mb-4">
+
+        <i class="bi bi-image"></i>
+
+        <span>Sin fotografías disponibles</span>
+
+    </div>
+
+<% } %>
+
+
+                        <!-- PRECIO Y TIPO DE SALÓN -->
+
+                        <div class="d-flex
+                                    justify-content-between
+                                    align-items-center
+                                    flex-wrap gap-2 mb-4">
+
+                            <div>
+
+                                <div class="text-muted small">
+
+                                    Precio de renta
+
+                                </div>
+
+                                <div class="precio-salon fs-3">
+
+                                    <%= formatoPrecio(
+                                        salon.tarifa_base
+                                    ) %>
+
+                                </div>
+
+                            </div>
+
+                            <% if (salon.tipo_salon) { %>
+
+                                <span class="badge rounded-pill
+                                             text-bg-light fs-6">
+
+                                    <%= salon.tipo_salon %>
+
+                                </span>
+
+                            <% } %>
+
+                        </div>
+
+
+                        <!-- DESCRIPCIÓN -->
+
+                        <div class="seccion-detalle mb-3">
+
+                            <div class="titulo-detalle">
+
+                                <i class="bi bi-info-circle me-2"></i>
+
+                                Acerca del salón
+
+                            </div>
+
+                            <div class="descripcion-texto">
+
+                                <%= salon.descripcion ||
+                                    'Consulta más información sobre este salón.' %>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="row g-3 mb-3">
+
+                            <!-- CAPACIDAD -->
+
+                            <div class="col-md-6">
+
+                                <div class="seccion-detalle h-100">
+
+                                    <div class="titulo-detalle">
+
+                                        <i class="bi bi-people me-2"></i>
+
+                                        Capacidad máxima
+
+                                    </div>
+
+                                    <div class="fw-semibold">
+
+                                        <%= salon.capacidad != null
+                                            ? salon.capacidad + ' personas'
+                                            : 'Por confirmar' %>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- DURACIÓN -->
+
+                            <div class="col-md-6">
+
+                                <div class="seccion-detalle h-100">
+
+                                    <div class="titulo-detalle">
+
+                                        <i class="bi bi-clock me-2"></i>
+
+                                        Duración de renta
+
+                                    </div>
+
+                                    <div class="fw-semibold">
+
+                                        <%= salon.horas_incluidas != null
+                                            ? salon.horas_incluidas + ' horas'
+                                            : 'Por confirmar' %>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- DIMENSIONES -->
+
+                        <div class="seccion-detalle mb-3">
+
+                            <div class="titulo-detalle">
+
+                                <i class="bi bi-rulers me-2"></i>
+
+                                Dimensiones del salón
+
+                            </div>
+
+                            <div class="row g-3 text-center">
+
+                                <div class="col-4">
+
+                                    <span class="small text-muted">
+
+                                        Largo
+
+                                    </span>
+
+                                    <div class="fw-semibold">
+
+                                        <%= formatoMedida(
+                                            salon.largo_m
+                                        ) %>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-4">
+
+                                    <span class="small text-muted">
+
+                                        Ancho
+
+                                    </span>
+
+                                    <div class="fw-semibold">
+
+                                        <%= formatoMedida(
+                                            salon.ancho_m
+                                        ) %>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-4">
+
+                                    <span class="small text-muted">
+
+                                        Alto
+
+                                    </span>
+
+                                    <div class="fw-semibold">
+
+                                        <%= formatoMedida(
+                                            salon.alto_m
+                                        ) %>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <hr>
+
+                            <div class="d-flex justify-content-between">
+
+                                <span class="text-muted">
+
+                                    Superficie total
+
+                                </span>
+
+                                <span class="fw-semibold">
+
+                                    <%= formatoMedida(
+                                        salon.superficie_m2,
+                                        'm²'
+                                    ) %>
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- UBICACIÓN -->
+
+                        <% if (salon.ubicacion) { %>
+
+                            <div class="seccion-detalle mb-3">
+
+                                <div class="titulo-detalle">
+
+                                    <i class="bi bi-geo-alt me-2"></i>
+
+                                    Ubicación del salón
+
+                                </div>
+
+                                <div class="descripcion-texto">
+
+                                    <%= salon.ubicacion %>
+
+                                </div>
+
+                            </div>
+
+                        <% } %>
+
+
+                        <!-- COSTOS ADICIONALES -->
+
+                        <% if (
+                            salon.tarifa_hora_extra != null ||
+                            salon.deposito_limpieza != null
+                        ) { %>
+
+                            <div class="seccion-detalle mb-3">
+
+                                <div class="titulo-detalle">
+
+                                    <i class="bi bi-cash-coin me-2"></i>
+
+                                    Costos adicionales
+
+                                </div>
+
+
+                                <% if (salon.tarifa_hora_extra != null) { %>
+
+                                    <div class="d-flex
+                                                justify-content-between
+                                                gap-2 mb-2">
+
+                                        <span class="text-muted">
+
+                                            Hora adicional
+
+                                        </span>
+
+                                        <span class="fw-semibold">
+
+                                            <%= formatoPrecio(
+                                                salon.tarifa_hora_extra
+                                            ) %>
+
+                                        </span>
+
+                                    </div>
+
+                                <% } %>
+
+
+                                <% if (salon.deposito_limpieza != null) { %>
+
+                                    <div class="d-flex
+                                                justify-content-between
+                                                gap-2">
+
+                                        <span class="text-muted">
+
+                                            Cuota de limpieza
+
+                                        </span>
+
+                                        <span class="fw-semibold">
+
+                                            <%= formatoPrecio(
+                                                salon.deposito_limpieza
+                                            ) %>
+
+                                        </span>
+
+                                    </div>
+
+                                    <p class="small text-muted mt-2 mb-0">
+
+                                        Reembolsable según las
+                                        condiciones de entrega del salón.
+
+                                    </p>
+
+                                <% } %>
+
+                            </div>
+
+                        <% } %>
+
+
+                        <!-- AVISO DE DISPONIBILIDAD -->
+
+                        <div class="aviso-disponibilidad mt-4">
+
+                            <i class="bi bi-calendar-event me-2"></i>
+
+                            Disponibilidad sujeta
+                            a la fecha solicitada.
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PIE DEL MODAL -->
+
+                    <div class="modal-footer">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                        >
+
+                            Cerrar
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    <% }); %>
+
+    <footer class="text-center py-4">
+
+        <h5 class="fw-bold">
+
+            ZAVABA
+
+        </h5>
+
+        <p class="mb-0">
+
+            Diversión para toda la familia.
+
+        </p>
+
+    </footer>
+
+
+    <!-- Bootstrap 5 JavaScript -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+
+</body>
+
+</html>

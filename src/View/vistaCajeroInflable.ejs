@@ -1,0 +1,1223 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Caja de Inflables | ZABAVA</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+    body {
+        background: #f5f7fb;
+    }
+
+    .panel {
+        border: 1px solid #e6e9f0;
+        border-radius: 14px;
+        box-shadow: 0 3px 12px #182b4b0a;
+    }
+
+    .calendario {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .nombre-dia {
+        text-align: center;
+        font-size: .77rem;
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    .dia {
+        min-height: 72px;
+        border: 1px solid #dee2e6;
+        border-radius: 9px;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+        padding: 7px;
+    }
+
+    .dia:hover,
+            .dia:focus {
+        border-color: #0d6efd;
+    }
+
+    .dia.selected {
+        outline: 2px solid #0d6efd;
+    }
+
+    .dia.con-evento {
+        background: #eef5ff;
+    }
+
+    .dia.con-instalacion {
+        border-left: 4px solid #f0ad4e;
+    }
+
+    .dia.fuera {
+        opacity: .3;
+        pointer-events: none;
+    }
+
+    .dia small {
+        font-size: .65rem;
+        line-height: 1.1;
+    }
+
+    .foto {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .sin-foto {
+        height: 150px;
+        border-radius: 10px;
+        background: #eef1f5;
+        display: grid;
+        place-items: center;
+        color: #6c757d;
+    }
+
+    .reserva-item {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 10px;
+    }
+
+    @media (max-width: 576px) {
+        .dia {
+            min-height: 55px;
+            padding: 4px;
+        }
+
+        .dia small {
+            font-size: .55rem;
+        }
+    }
+
+    body {
+        background: #f8f6fc;
+    }
+
+    .dia.con-evento {
+        background: #f0e8fc;
+    }
+
+    .dia.selected {
+        outline: 2px solid #9062db;
+    }
+
+    .dia:hover,.dia:focus {
+        border-color: #9062db;
+    }
+
+    .reserva-item {
+        border-color: #e7ddf5;
+    }
+
+    .elegir-inflable.active {
+        background: #7546c8;
+        color: white;
+    }
+
+    .foto {
+        height: 145px;
+    }
+</style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/GestionRentas.css">
+</head>
+
+<body>
+
+<%- include('partials/GestionRentasNav',{regreso:'/rentas/gestion/inflables',etiquetaRegreso:'Menú de inflables'}) %>
+<main class="container-fluid hb-main px-3 px-lg-4 py-4">
+
+    <div class="hb-crumb mb-3"><a href="/rentas">Rentas</a> / <a href="/rentas/gestion/inflables">Inflables</a>
+    </div>
+    <p class="hb-kicker mb-1">Trampolines e inflables</p>
+    <h1 id="tituloSeccion" class="hb-heading h2">Renta de inflables</h1>
+    <p id="descripcionSeccion" class="hb-intro">Selecciona una sección para continuar.</p>
+    <div class="hb-tabs"><a data-seccion="nueva" href="/admin/inflables/caja?seccion=nueva"><i class="bi bi-calendar-plus me-1"></i>Nueva reservación</a><a data-seccion="disponibilidad" href="/admin/inflables/caja?seccion=disponibilidad"><i class="bi bi-calendar-week me-1"></i>Disponibilidad</a><a data-seccion="registrados" href="/admin/inflables/caja?seccion=registrados"><i class="bi bi-clipboard-check me-1"></i>Mis reservaciones</a>
+    </div>
+    <!-- MENSAJE DE ÉXITO -->
+    <% if (aviso) { %>
+        <div class="alert alert-success" role="status">
+            <%= aviso %>
+        </div>
+    <% } %>
+
+
+    <!-- Consulta mensual independiente de la contratación -->
+    <div id="barraMes" class="hb-panel d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3" hidden>
+      <div><span class="hb-kicker">Agenda mensual</span>
+          <div class="fw-bold text-capitalize" id="tituloMes">
+      </div>
+      </div>
+      <div class="btn-group">
+          <button id="mesAnterior" type="button" class="btn btn-outline-primary" aria-label="Mes anterior">‹</button>
+          <button id="mesSiguiente" type="button" class="btn btn-outline-primary" aria-label="Mes siguiente">›</button>
+      </div>
+    </div>
+    <div id="consultaInflable" class="hb-panel mb-3" hidden>
+        <h2 class="h5 fw-bold">Comprobar un juego</h2>
+        <div class="row g-2 align-items-end">
+            <label class="col-md-4">Inflable<select class="form-select" id="consultaJuego">
+                <option value="">Selecciona</option><% inflables.forEach(i=>{ %><option value="<%= i.id %>"><%= i.nombre %></option><% }); %></select>
+            </label>
+            <label class="col-md-3">Fecha<input type="date" id="consultaFecha" class="form-control">
+        </label>
+        <label class="col-md-3 pb-2">
+            <input type="checkbox" id="consultaAnticipada" class="form-check-input"> Instalación un día antes</label>
+            <div class="col-md-2">
+                <button class="btn btn-morado w-100" type="button" id="consultaBoton">Comprobar</button>
+            </div>
+        </div>
+        <p class="small mb-0 mt-2" id="consultaResultado" role="status">
+    </p>
+    </div>
+    <div id="zonaAgenda" class="row g-4 mb-4" hidden>
+
+        <section class="col-lg-7">
+            <div class="card panel h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between
+                                align-items-center mb-3">
+
+                        <h5 class="fw-bold mb-0">
+                            Calendario de Reservaciones
+                        </h5>
+
+                    </div>
+                    <div
+                        id="calendario"
+                        class="calendario"
+                        aria-label="Calendario interactivo">
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3
+                                small text-muted mt-3">
+
+                        <span>🟣 Día con renta de brincolín</span>
+                        <span>🟠 Instalación anticipada</span>
+                    </div>
+
+                    <p class="text-muted small mt-2 mb-0">
+                        Selecciona una fecha para consultar
+                        sus reservaciones.
+                    </p>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- DETALLES DE FECHA -->
+        <section class="col-lg-5">
+
+            <div class="card panel h-100">
+
+                <div class="card-body">
+
+                    <h5 class="fw-bold">
+                        Detalles del Día
+                    </h5>
+
+                    <p id="fechaSeleccionada"
+                       class="text-muted small mb-2"></p>
+
+                    <div id="detalleDia" aria-live="polite">
+                        Selecciona un día del calendario.
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+
+
+    <section id="zonaRegistrados" class="hb-panel mb-4" hidden>
+        <div class="d-flex justify-content-between gap-2 flex-wrap align-items-center mb-3">
+            <h2 class="h5 fw-bold mb-0">Reservaciones del mes</h2><span id="totalRegistrados" class="text-muted small"></span>
+        </div>
+        <label for="buscarRegistrados" class="form-label">Buscar por cliente, inflable, estado o folio</label>
+        <input id="buscarRegistrados" class="form-control mb-3" placeholder="Escribe para filtrar">
+        <div id="listaRegistrados" aria-live="polite">
+    </div>
+    </section>
+    <!-- CATÁLOGO Y FORMULARIO -->
+    <div class="row g-4" id="zonaNueva" hidden>
+
+        <!-- CATÁLOGO -->
+        <section class="col-lg-6">
+
+            <div class="card panel">
+                <div class="card-body">
+
+                    <h5 class="fw-bold mb-3">
+                        Seleccionar Inflable
+                    </h5>
+
+                    <div class="row row-cols-1
+                                row-cols-md-2 g-3">
+
+                        <% inflables.forEach(inf => { %>
+
+                            <% const bloqueado = [
+                                'REQUIERE_LIMPIEZA',
+                                'MANTENIMIENTO',
+                                'FUERA_SERVICIO'
+                            ].includes(inf.ultima_revision); %>
+
+                            <div class="col">
+
+                                <article class="border rounded-3
+                                                p-2 h-100">
+
+                                    <!-- IMAGEN -->
+                                    <% if (inf.imagen) { %>
+
+                                        <img
+                                            class="foto"
+                                            loading="lazy"
+                                            src="<%= inf.imagen %>"
+                                            alt="<%= inf.nombre %>"
+                                        >
+
+                                    <% } else { %>
+
+                                        <div class="sin-foto">
+                                            Sin fotografía
+                                        </div>
+
+                                    <% } %>
+
+
+                                    <!-- INFORMACIÓN -->
+                                    <div class="fw-semibold mt-2">
+                                        <%= inf.nombre %>
+                                    </div>
+
+                                    <div class="small text-muted">
+                                        <%= inf.largo_m ?? '—' %> ×
+                                        <%= inf.ancho_m ?? '—' %> ×
+                                        <%= inf.alto_m ?? '—' %> m
+                                    </div>
+
+                                    <div class="fw-semibold mt-1">
+                                        <%= Number(inf.precio_completo).toLocaleString(
+                                            'es-MX',
+                                            {
+                                                style: 'currency',
+                                                currency: 'MXN'
+                                            }
+                                        ) %>
+                                    </div>
+
+                                    <div class="small text-muted">
+                                        Anticipo mínimo:
+
+                                        <%= inf.anticipo_minimo === null
+                                            ? 'Pendiente de definir'
+                                            : Number(inf.anticipo_minimo)
+                                                .toLocaleString(
+                                                    'es-MX',
+                                                    {
+                                                        style: 'currency',
+                                                        currency: 'MXN'
+                                                    }
+                                                )
+                                        %>
+                                    </div>
+
+
+                                    <% if (bloqueado) { %>
+
+                                        <div class="text-danger small mt-1">
+                                            Requiere revisión antes
+                                            de rentarse
+                                        </div>
+
+                                    <% } %>
+
+
+                                    <!-- SELECCIONAR -->
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary
+                                               btn-sm w-100 mt-2
+                                               elegir-inflable"
+
+                                        data-id="<%= inf.id %>"
+                                        data-nombre="<%= inf.nombre %>"
+                                        data-precio="<%= inf.precio_completo %>"
+
+                                        <%= bloqueado ? 'disabled' : '' %>
+                                    >
+                                        Seleccionar
+                                    </button>
+
+                                </article>
+                            </div>
+
+                        <% }) %>
+
+                    </div>
+
+                    <% if (!inflables.length) { %>
+
+                        <div class="alert alert-info">
+                            No hay inflables habilitados.
+                        </div>
+
+                    <% } %>
+
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- NUEVA RESERVACIÓN -->
+        <section class="col-lg-6" id="seccionReserva">
+
+            <div class="card panel">
+
+                <div class="card-body">
+
+                    <h5 class="fw-bold mb-3">
+                        Nueva Reservación
+                    </h5>
+
+                    <form
+                        action="/admin/inflables/caja/reservar"
+                        method="POST"
+                        id="formReserva"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="inflable_id"
+                            id="inflableId"
+                            required
+                        >
+
+                        <div
+                            class="alert alert-secondary small"
+                            id="inflableElegido">
+                            Primero selecciona un inflable.
+                        </div>
+
+
+                        <!-- CLIENTE -->
+                        <h6 class="border-bottom pb-2">
+                            Datos del Cliente
+                        </h6>
+
+                        <div class="row g-2 mb-3">
+
+                            <div class="col-md-7">
+
+                                <label for="cliente"
+                                       class="form-label">
+                                    Nombre Completo *
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    id="cliente"
+                                    name="cliente"
+                                    maxlength="120"
+                                    required
+                                >
+                            </div>
+
+                            <div class="col-md-5">
+
+                                <label for="telefono"
+                                       class="form-label">
+                                    Teléfono *
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    id="telefono"
+                                    name="telefono"
+                                    type="tel"
+                                    maxlength="30"
+                                    required
+                                >
+                            </div>
+
+                            <div class="col-12">
+
+                                <label for="email"
+                                       class="form-label">
+                                    Correo (opcional)
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    maxlength="150"
+                                >
+                            </div>
+
+                        </div>
+
+
+                        <!-- FECHAS -->
+                        <h6 class="border-bottom pb-2">
+                            Evento y Fechas
+                        </h6>
+
+                        <div class="row g-2 mb-3">
+
+                            <div class="col-md-6">
+
+                                <label for="fechaEvento"
+                                       class="form-label">
+                                    Fecha del Evento *
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    type="date"
+                                    name="fecha_evento"
+                                    id="fechaEvento"
+                                    required
+                                >
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label for="tipoEvento"
+                                       class="form-label">
+                                    Tipo de Evento
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    id="tipoEvento"
+                                    name="tipo_evento">
+
+                                    <option value="">
+                                        Seleccionar
+                                    </option>
+
+                                    <option>Cumpleaños</option>
+                                    <option>Fiesta familiar</option>
+                                    <option>Evento escolar</option>
+                                    <option>Otro</option>
+
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+
+                                <div class="form-check mt-1">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        value="1"
+                                        name="dia_anterior"
+                                        id="diaAnterior"
+                                    >
+
+                                    <label
+                                        class="form-check-label"
+                                        for="diaAnterior">
+                                        Instalar un día antes
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-8">
+
+                                <label for="nombreEvento"
+                                       class="form-label">
+                                    Nombre o Motivo del Evento
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    id="nombreEvento"
+                                    name="nombre_evento"
+                                    maxlength="150"
+                                    placeholder="Ej. Cumpleaños de Ana"
+                                >
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label for="invitados"
+                                       class="form-label">
+                                    Invitados
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    id="invitados"
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    name="numero_invitados"
+                                >
+                            </div>
+
+                            <div class="col-12">
+
+                                <div class="form-check">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        value="1"
+                                        id="menores"
+                                        name="evento_con_menores"
+                                    >
+
+                                    <label
+                                        for="menores"
+                                        class="form-check-label">
+                                        Asistirán menores de edad
+                                    </label>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <!-- INSTALACIÓN -->
+                        <h6 class="border-bottom pb-2">
+                            Lugar de Instalación
+                        </h6>
+
+                        <div class="row g-2 mb-3">
+
+                            <div class="col-12">
+
+                                <label for="tipoLugar"
+                                       class="form-label">
+                                    Tipo de Lugar *
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    id="tipoLugar"
+                                    name="tipo_lugar"
+                                    required
+                                >
+                                    <option value="">
+                                        Seleccionar
+                                    </option>
+
+                                    <option value="DOMICILIO">
+                                        Domicilio
+                                    </option>
+
+                                    <option value="SALON_CERRADO">
+                                        Salón cerrado
+                                    </option>
+
+                                    <option value="ESPACIO_ABIERTO">
+                                        Espacio abierto / calle
+                                    </option>
+
+                                    <option value="OTRO">
+                                        Otro
+                                    </option>
+
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+
+                                <label for="direccion"
+                                       class="form-label">
+                                    Dirección Completa *
+                                </label>
+
+                                <textarea
+                                    class="form-control"
+                                    name="direccion_instalacion"
+                                    id="direccion"
+                                    maxlength="300"
+                                    rows="2"
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <div class="col-12">
+
+                                <label for="referencias"
+                                       class="form-label">
+                                    Referencias para Llegar
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    name="referencias_ubicacion"
+                                    id="referencias"
+                                >
+                            </div>
+
+                        </div>
+
+
+                        <!-- DISPONIBILIDAD -->
+                        <button
+                            type="button"
+                            id="comprobar"
+                            class="btn btn-outline-primary
+                                   btn-sm mb-2">
+                            Comprobar Disponibilidad
+                        </button>
+
+                        <div
+                            class="small mb-3"
+                            id="mensajeDisponibilidad"
+                            aria-live="polite">
+                        </div>
+
+
+                        <!-- PAGO -->
+                        <h6 class="border-bottom pb-2">
+                            Pago
+                        </h6>
+
+                        <p class="mb-1 small">
+                            Precio completo:
+                            <strong id="precioMostrado">
+                                —
+                            </strong>
+                        </p>
+
+                        <p class="small text-muted">
+                            El anticipo mínimo depende de
+                            la política del negocio.
+                        </p>
+
+                        <div class="row g-2 mb-3">
+
+                            <div class="col-md-6">
+
+                                <label for="anticipo"
+                                       class="form-label">
+                                    Anticipo Recibido (MXN)
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    id="anticipo"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    name="anticipo"
+                                    value="0"
+                                    required
+                                >
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label for="metodo"
+                                       class="form-label">
+                                    Método de Pago
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    id="metodo"
+                                    name="metodo_pago">
+
+                                    <option value="">
+                                        Sin pago
+                                    </option>
+
+                                    <option value="EFECTIVO">
+                                        Efectivo
+                                    </option>
+
+                                    <option value="TARJETA">
+                                        Tarjeta
+                                    </option>
+
+                                    <option value="TRANSFERENCIA">
+                                        Transferencia
+                                    </option>
+
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+
+                                <label for="referenciaPago"
+                                       class="form-label">
+                                    Referencia de Pago
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    id="referenciaPago"
+                                    name="referencia_pago"
+                                    maxlength="120"
+                                >
+                            </div>
+
+                            <div class="col-12">
+
+                                <label for="observaciones"
+                                       class="form-label">
+                                    Observaciones
+                                </label>
+
+                                <textarea
+                                    class="form-control"
+                                    id="observaciones"
+                                    name="observaciones"
+                                    rows="2"
+                                ></textarea>
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100">
+                            Registrar Reservación
+                        </button>
+
+                    </form>
+
+
+                    <!-- FUNCIONES DE SPRINT FUTURO -->
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+
+                        <button
+                            class="btn btn-outline-secondary btn-sm"
+                            disabled
+                            title="Disponible en un sprint posterior">
+                            Cancelar Renta (próximamente)
+                        </button>
+
+                        <button
+                            class="btn btn-outline-secondary btn-sm"
+                            disabled
+                            title="Disponible en un sprint posterior">
+                            Generar / Imprimir Contrato
+                            (próximamente)
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+(() => {
+    const base = '/admin/inflables/caja';
+    const paramsVista = new URLSearchParams(location.search);
+    const seccion = ['nueva', 'disponibilidad', 'registrados'].includes(paramsVista.get('seccion')) ? paramsVista.get('seccion') : 'disponibilidad';
+    const titulos = { nueva: ['Nueva reservación', 'Selecciona un inflable, confirma la disponibilidad y registra la renta.'], disponibilidad: ['Disponibilidad de inflables', 'Consulta los eventos e instalaciones por fecha, sin abrir una reservación.'], registrados: ['Mis reservaciones', 'Consulta los registros del mes y sus datos.'] };
+    document.getElementById('tituloSeccion').textContent = titulos[seccion][0];
+    document.getElementById('descripcionSeccion').textContent = titulos[seccion][1];
+    document.getElementById('zonaNueva').hidden = seccion !== 'nueva';
+    document.getElementById('zonaAgenda').hidden = seccion !== 'disponibilidad';
+    document.getElementById('consultaInflable').hidden = seccion !== 'disponibilidad';
+    document.getElementById('zonaRegistrados').hidden = seccion !== 'registrados';
+    document.getElementById('barraMes').hidden = seccion === 'nueva';
+    document.querySelectorAll('[data-seccion]').forEach(a => {
+        if (a.dataset.seccion === seccion) {
+            a.classList.add('active');
+            a.setAttribute('aria-current', 'page');
+        }
+    });
+    const hoy = new Date();
+    const estado = {
+        anio: hoy.getFullYear(),
+        mes: hoy.getMonth(),
+        fecha: null,
+        eventos: []
+    };
+    const cal = document.getElementById('calendario');
+    const detalles = document.getElementById('detalleDia');
+    const fechaTexto = document.getElementById('fechaSeleccionada');
+    const fechaEvento = document.getElementById('fechaEvento');
+    const diaAnterior = document.getElementById('diaAnterior');
+    const inflableId = document.getElementById('inflableId');
+    const comprobar = document.getElementById('comprobar');
+    const mensaje = document.getElementById('mensajeDisponibilidad');
+    let secuencia = 0;
+
+    function fechaLocal(d) {
+        const anio = d.getFullYear();
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const dia = String(d.getDate()).padStart(2, '0');
+        return `${anio}-${mes}-${dia}`;
+    }
+    fechaEvento.min = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Mexico_City' });
+
+    function etiquetaFecha(s) {
+        return new Date(`${s}T12:00:00`)
+            .toLocaleDateString('es-MX', { dateStyle: 'long' });
+    }
+    // CONFIGURACIÓN DEL CAMPO PDF
+
+    function configurarPDF(campo) {
+        campo.accept = 'application/pdf';
+        campo.required = true;
+        campo.className = 'form-control form-control-sm';
+    }
+    // MOSTRAR UNA RESERVACIÓN EN EL LISTADO
+
+    function detalleReserva(r, tipo) {
+        const cont = document.createElement('div');
+        cont.className = 'reserva-item';
+        const titulo = document.createElement('div');
+        titulo.className = 'fw-semibold';
+        titulo.textContent =
+            `${tipo}: ${r.inflable} · ${r.estado}`;
+        cont.appendChild(titulo);
+        const datos = document.createElement('div');
+        datos.className = 'small mt-1';
+        const pagado = Number(r.pagado || 0);
+        const precio = Number(r.tarifa_acordada);
+        const saldo = Math.max(0, precio - pagado);
+        datos.textContent =
+            `Folio: #${r.reservacion_id || "—"} · Cliente: ${r.cliente} · ` +
+                `Tel: ${r.telefono || '—'} · ` +
+                `Evento: ${r.tipo_evento || r.nombre_evento || '—'} · ` +
+                `Instalación: ${r.fecha_instalacion} · ` +
+                `Dirección: ${r.direccion_instalacion || '—'} · ` +
+                `Precio: $${precio.toFixed(2)} · ` +
+                `Pagado: $${pagado.toFixed(2)} · ` +
+                `Saldo: $${saldo.toFixed(2)}`;
+        cont.appendChild(datos);
+        const contrato = document.createElement('div');
+        contrato.className = 'small mt-2';
+        contrato.textContent = r.contrato_firmado
+            ? '✅ Contrato firmado registrado'
+            : 'Pendiente de contrato firmado';
+        cont.appendChild(contrato);
+        // MOSTRAR FORMULARIO DE PDF SI NO ESTÁ REGISTRADO
+        if (seccion === 'registrados' && !Number(r.contrato_firmado)) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.enctype = 'multipart/form-data';
+            form.action =
+                `${base}/reservaciones/` +
+                    `${Number(r.reservacion_id)}/contrato`;
+            form.className = 'mt-2';
+            const campo = document.createElement('input');
+            campo.type = 'file';
+            campo.name = 'contrato_firmado';
+            configurarPDF(campo);
+            const boton = document.createElement('button');
+            boton.type = 'submit';
+            boton.className =
+                'btn btn-sm btn-outline-primary mt-2';
+            boton.textContent =
+                'Subir Contrato Firmado (PDF)';
+            form.append(campo, boton);
+            cont.appendChild(form);
+        }
+        return cont;
+    }
+    // MOSTRAR DETALLES DE LA FECHA SELECCIONADA
+
+    function mostrarDia(fecha) {
+        estado.fecha = fecha;
+        document.getElementById('consultaFecha').value = fecha;
+        fechaTexto.textContent = etiquetaFecha(fecha);
+        detalles.replaceChildren();
+        const hoyEventos = estado.eventos.flatMap(r => {
+            const tipos = [];
+            if (r.fecha_evento === fecha) {
+                tipos.push('Evento');
+            }
+            if (r.fecha_instalacion === fecha &&
+                r.fecha_evento !== fecha) {
+                tipos.push('Instalación anticipada');
+            }
+            return tipos.map(tipo => ({
+                r,
+                tipo
+            }));
+        });
+        if (!hoyEventos.length) {
+            detalles.textContent =
+                'No hay reservaciones para esta fecha.';
+            return;
+        }
+        hoyEventos.forEach(({ r, tipo }) => {
+            detalles.appendChild(detalleReserva(r, tipo));
+        });
+    }
+    // DIBUJAR EL CALENDARIO
+
+    function dibujar() {
+        cal.replaceChildren();
+        const titulo = new Date(estado.anio, estado.mes, 1);
+        document.getElementById('tituloMes').textContent = titulo.toLocaleDateString('es-MX', {
+            month: 'long',
+            year: 'numeric'
+        });
+        const nombres = [
+            'Lun', 'Mar', 'Mié',
+            'Jue', 'Vie', 'Sáb', 'Dom'
+        ];
+        nombres.forEach(nombre => {
+            const el = document.createElement('div');
+            el.className = 'nombre-dia';
+            el.textContent = nombre;
+            cal.appendChild(el);
+        });
+        // Ajustar el calendario para iniciar en lunes
+        const inicio = (titulo.getDay() + 6) % 7;
+        const cantidad = new Date(estado.anio, estado.mes + 1, 0).getDate();
+        const totalCeldas = Math.ceil((inicio + cantidad) / 7) * 7;
+        for (let pos = 0; pos < totalCeldas; pos++) {
+            const boton = document.createElement('button');
+            boton.type = 'button';
+            boton.className = 'dia';
+            const numero = pos - inicio + 1;
+            // Celdas vacías
+            if (numero < 1 ||
+                numero > cantidad) {
+                boton.classList.add('fuera');
+                boton.disabled = true;
+                cal.appendChild(boton);
+                continue;
+            }
+            const fecha = fechaLocal(new Date(estado.anio, estado.mes, numero));
+            // Contar reservaciones de la fecha
+            const eventos = estado.eventos.filter(r => r.fecha_evento === fecha).length;
+            const instalaciones = estado.eventos.filter(r => r.fecha_instalacion === fecha &&
+                r.fecha_evento !== fecha).length;
+            boton.setAttribute('aria-label', `${etiquetaFecha(fecha)}; ` +
+                `${eventos} eventos, ` +
+                `${instalaciones} instalaciones`);
+            boton.classList.toggle('con-evento', eventos > 0);
+            boton.classList.toggle('con-instalacion', instalaciones > 0);
+            boton.classList.toggle('selected', estado.fecha === fecha);
+            const numeroDia = document.createElement('strong');
+            numeroDia.textContent = numero;
+            boton.appendChild(numeroDia);
+            if (eventos) {
+                const etiqueta = document.createElement('small');
+                etiqueta.textContent = `${eventos} Rentado(s)`;
+                boton.appendChild(etiqueta);
+            }
+            if (instalaciones) {
+                const etiqueta = document.createElement('small');
+                etiqueta.textContent =
+                    `${instalaciones} instalación(es)`;
+                boton.appendChild(etiqueta);
+            }
+            // SELECCIONAR FECHA
+            boton.addEventListener('click', () => {
+                mostrarDia(fecha);
+                // Utilizar la fecha también en el formulario
+                fechaEvento.value = fecha;
+                document.getElementById('consultaResultado').textContent = '';
+                dibujar();
+            });
+            cal.appendChild(boton);
+        }
+    }
+    // CONSULTAR RESERVACIONES DEL MES DESDE MYSQL
+
+    async function cargarMes() {
+        const token = ++secuencia;
+        const mes = `${estado.anio}-` +
+            `${String(estado.mes + 1).padStart(2, '0')}`;
+        detalles.textContent = 'Cargando reservaciones…';
+        document.getElementById('listaRegistrados').textContent = 'Cargando reservaciones…';
+        try {
+            const response = await fetch(`${base}/eventos?mes=${mes}`);
+            const json = await response.json();
+            if (!response.ok) {
+                throw new Error(json.error ||
+                    'No se pudo cargar la agenda.');
+            }
+            if (token !== secuencia)
+                return;
+            if (!Array.isArray(json))
+                throw new Error('La agenda no devolvió una lista de reservaciones.');
+            estado.eventos = json;
+            const diaInicial = estado.fecha?.startsWith(mes)
+                ? estado.fecha
+                : (fechaEvento.min.startsWith(mes) ? fechaEvento.min : `${mes}-01`);
+            mostrarDia(diaInicial);
+            dibujar();
+            mostrarRegistrados();
+        }
+        catch (error) {
+            detalles.textContent = error.message;
+            document.getElementById('listaRegistrados').textContent = error.message;
+        }
+    }
+    // MES ANTERIOR
+    document.getElementById('mesAnterior')
+        .addEventListener('click', () => {
+        estado.mes--;
+        if (estado.mes < 0) {
+            estado.mes = 11;
+            estado.anio--;
+        }
+        cargarMes();
+    });
+    // MES SIGUIENTE
+    document.getElementById('mesSiguiente')
+        .addEventListener('click', () => {
+        estado.mes++;
+        if (estado.mes > 11) {
+            estado.mes = 0;
+            estado.anio++;
+        }
+        cargarMes();
+    });
+    // SELECCIONAR INFLABLE
+    document.querySelectorAll('.elegir-inflable')
+        .forEach(boton => {
+        boton.addEventListener('click', () => {
+            document.querySelectorAll('.elegir-inflable').forEach(b => b.classList.toggle('active', b === boton));
+            inflableId.value = boton.dataset.id;
+            document.getElementById('inflableElegido').textContent =
+                `Seleccionado: ${boton.dataset.nombre}`;
+            document.getElementById('precioMostrado').textContent = Number(boton.dataset.precio).toLocaleString('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            });
+            document.getElementById('anticipo').max = boton.dataset.precio;
+            document.getElementById('seccionReserva').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+            mensaje.textContent = '';
+        });
+    });
+    // CONSULTAR DISPONIBILIDAD
+    comprobar.addEventListener('click', async () => {
+        if (!inflableId.value || !fechaEvento.value) {
+            mensaje.textContent =
+                'Selecciona un inflable y una fecha.';
+            return;
+        }
+        const parametros = new URLSearchParams({
+            inflable_id: inflableId.value,
+            fecha_evento: fechaEvento.value,
+            dia_anterior: diaAnterior.checked ? '1' : '0'
+        });
+        try {
+            const res = await fetch(`${base}/disponibilidad?${parametros}`);
+            const datos = await res.json();
+            if (!res.ok) {
+                throw new Error(datos.error ||
+                    'No se pudo comprobar.');
+            }
+            mensaje.className =
+                `small mb-3 ` +
+                    (datos.disponible
+                        ? 'text-success'
+                        : 'text-danger');
+            mensaje.textContent = datos.disponible
+                ? `Disponible. Instalación: ${datos.fecha_instalacion}`
+                : 'No disponible: reservado, deshabilitado o pendiente de revisión.';
+        }
+        catch (error) {
+            mensaje.textContent = error.message;
+        }
+    });
+    // VALIDAR SELECCIÓN ANTES DE ENVIAR
+    document.getElementById('formReserva')
+        .addEventListener('submit', event => {
+        if (!inflableId.value) {
+            event.preventDefault();
+            alert('Primero selecciona un inflable.');
+        }
+    });
+
+    function mostrarRegistrados() {
+        const lista = document.getElementById('listaRegistrados'), filtro = document.getElementById('buscarRegistrados').value.trim().toLowerCase();
+        const filas = estado.eventos.filter(r => [r.reservacion_id, r.cliente, r.inflable, r.estado, r.nombre_evento, r.fecha_evento].join(' ').toLowerCase().includes(filtro)).sort((a, b) => String(b.fecha_evento).localeCompare(String(a.fecha_evento)));
+        lista.replaceChildren();
+        document.getElementById('totalRegistrados').textContent = filas.length + ' registro(s)';
+        if (!filas.length)
+            lista.textContent = 'No hay reservaciones para mostrar.';
+        filas.forEach(r => lista.appendChild(detalleReserva(r, 'Evento ' + (r.fecha_evento || '—'))));
+    }
+    document.getElementById('buscarRegistrados').addEventListener('input', mostrarRegistrados);
+    document.getElementById('consultaFecha').min = fechaEvento.min;
+    document.getElementById('consultaBoton').addEventListener('click', async () => {
+        const juego = document.getElementById('consultaJuego').value, fecha = document.getElementById('consultaFecha').value, resultado = document.getElementById('consultaResultado'), boton = document.getElementById('consultaBoton');
+        if (!juego || !fecha || fecha < fechaEvento.min) {
+            resultado.textContent = 'Selecciona un inflable y una fecha de hoy en adelante.';
+            resultado.className = 'small mt-2 text-danger';
+            return;
+        }
+        boton.disabled = true;
+        resultado.textContent = 'Consultando…';
+        try {
+            const p = new URLSearchParams({ inflable_id: juego, fecha_evento: fecha, dia_anterior: document.getElementById('consultaAnticipada').checked ? '1' : '0' });
+            const r = await fetch(base + '/disponibilidad?' + p, { cache: 'no-store' });
+            const j = await r.json();
+            if (!r.ok)
+                throw new Error(j.error || 'No se pudo consultar.');
+            resultado.textContent = j.disponible ? 'Disponible. Instalación: ' + j.fecha_instalacion : 'No disponible: reservado, deshabilitado o pendiente de revisión.';
+            resultado.className = 'small mt-2 ' + (j.disponible ? 'text-success' : 'text-danger');
+        }
+        catch (e) {
+            resultado.textContent = e.message;
+            resultado.className = 'small mt-2 text-danger';
+        }
+        finally {
+            boton.disabled = false;
+        }
+    });
+    ['consultaJuego', 'consultaFecha', 'consultaAnticipada'].forEach(id => document.getElementById(id).addEventListener('change', () => document.getElementById('consultaResultado').textContent = ''));
+    // CARGA INICIAL: no consultar calendario cuando solo se va a registrar.
+    if (seccion !== 'nueva')
+        cargarMes();
+})();
+
+</script>
+
+</body>
+</html>
